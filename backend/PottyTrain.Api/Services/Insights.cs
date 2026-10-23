@@ -5,41 +5,73 @@ namespace PottyTrain.Api.Services;
 
 public static class InsightsCalculator
 {
-    public static bool IsSuccess(LogEntry l) => l.Type is LogType.Pee or LogType.Poop && l.InPotty == true;
-    public static bool IsAccident(LogEntry l) => l.Type == LogType.Accident || (l.Type is LogType.Pee or LogType.Poop && l.InPotty == false);
-
-    public static InsightsDto Compute(IReadOnlyList<LogEntry> logs, int days, DateTime now)
+    public static InsightsDto Compute(IReadOnlyList<LogEntry> logs, int days, DateTime now, Prediction? prediction = null)
     {
-        var successes = logs.Where(IsSuccess).OrderBy(l => l.OccurredAt).ToList();
-        var accidents = logs.Where(IsAccident).OrderBy(l => l.OccurredAt).ToList();
+        var successes = logs.Where(LogRules.IsSuccess).OrderBy(l => l.OccurredAt).ToList();
+        var accidents = logs.Where(LogRules.IsAccident).OrderBy(l => l.OccurredAt).ToList();
         var attempts = successes.Count + accidents.Count;
         var rate = attempts == 0 ? 0 : Math.Round(100.0 * successes.Count / attempts, 1);
 
         var lastAccident = accidents.LastOrDefault()?.OccurredAt;
         var dryHours = lastAccident is null ? 0 : (int)Math.Max(0, (now - lastAccident.Value).TotalHours);
 
-        var gaps = successes.Zip(successes.Skip(1), (a, b) => (b.OccurredAt - a.OccurredAt).TotalMinutes)
-                            .Where(m => m is > 5 and < 600).ToList();
+        var gaps = Gaps(successes, 5, 600);
         var avgGap = gaps.Count == 0 ? 0 : Math.Round(gaps.Average(), 0);
-
-        DateTime? predicted = null;
-        if (gaps.Count >= 3 && successes.Count > 0)
-        {
-            var recent = gaps.TakeLast(10).OrderBy(x => x).ToList();
-            var median = recent[recent.Count / 2];
-            var next = successes[^1].OccurredAt.AddMinutes(median);
-            predicted = next < now ? now.AddMinutes(10) : next;
-        }
 
         var byHour = new int[24];
         foreach (var s in successes) byHour[s.OccurredAt.Hour]++;
 
-        var daily = logs.GroupBy(l => DateOnly.FromDateTime(l.OccurredAt))
-            .OrderBy(g => g.Key)
-            .Select(g => new DayInsight(g.Key, g.Count(IsSuccess), g.Count(IsAccident),
+        var daily = logs.GroupBy(l => DateOnly.FromDateTime(l.OccurredAt)).OrderBy(g => g.Key)
+            .Select(g => new DayInsight(g.Key, g.Count(LogRules.IsSuccess), g.Count(LogRules.IsAccident),
                 g.Count(l => l.Type == LogType.Sit), g.Count(l => l.Type == LogType.Fluid)))
             .ToList();
 
-        return new InsightsDto(days, successes.Count, accidents.Count, rate, dryHours, avgGap, predicted, byHour, daily);
+        var balance = logs.GroupBy(l => DateOnly.FromDateTime(l.OccurredAt)).OrderBy(g => g.Key)
+            .Select(g => new DailyBalance(g.Key, g.Sum(l => LogRules.IntakeMl(l) ?? 0), g.Count(l => l.Type == LogType.Fluid),
+                g.Count(l => l.Type == LogType.Food), g.Count(l => l.Type == LogType.Pee), g.Count(l => l.Type == LogType.Poop)))
+            .ToList();
+
+        var lags = LogRules.DrinkToUrineLagsMinutes(logs);
+        var urineGaps = Gaps(logs.Where(l => l.Type == LogType.Pee).OrderBy(l => l.OccurredAt).ToList(), 5, 720);
+        var stoolGaps = Gaps(logs.Where(l => l.Type == LogType.Poop).OrderBy(l => l.OccurredAt).ToList(), 60, 60 * 24 * 14);
+        var io = new IntakeOutputDto(
+            lags.Count >= FluidAwarePredictor.MinSamples ? Math.Round(Stats.Median(lags), 0) : null, lags.Count,
+            urineGaps.Count == 0 ? null : Math.Round(urineGaps.Average(), 0),
+            stoolGaps.Count == 0 ? null : Math.Round(stoolGaps.Average() / 60, 1));
+
+        return new InsightsDto(days, successes.Count, accidents.Count, rate, dryHours, avgGap,
+            prediction?.NextLikelyAt, prediction?.Model, byHour, daily, balance, io, Notes(logs, now));
+    }
+
+    private static List<double> Gaps(IReadOnlyList<LogEntry> ordered, double minMin, double maxMin) =>
+        ordered.Zip(ordered.Skip(1), (a, b) => (b.OccurredAt - a.OccurredAt).TotalMinutes).Where(m => m > minMin && m < maxMin).ToList();
+
+    /// <summary>Observations to show parents. Deliberately non-diagnostic: they describe patterns and suggest asking a professional.</summary>
+    private static List<InsightNote> Notes(IReadOnlyList<LogEntry> logs, DateTime now)
+    {
+        var notes = new List<InsightNote>();
+        var stools = logs.Where(l => l.Type == LogType.Poop).OrderBy(l => l.OccurredAt).ToList();
+
+        // Only reason about stool frequency if the parent actually logs stools (>= 2 in the window).
+        if (stools.Count >= 2 && now - stools[^1].OccurredAt >= TimeSpan.FromDays(3))
+            notes.Add(new("no-stool", $"No stool has been logged for {(int)(now - stools[^1].OccurredAt).TotalDays} days. Offering fluids and fibre-rich foods may help. If your child seems uncomfortable or this continues, mention it to your paediatrician."));
+
+        if (stools.Count(l => l.OccurredAt >= now.AddDays(-3) && l.StoolType is 1 or 2) >= 2)
+            notes.Add(new("hard-stools", "Several hard stools (type 1-2) in the last 3 days. More fluids and fibre can help; ask your paediatrician if it persists."));
+
+        if (logs.Any(l => l.OccurredAt >= now.AddDays(-7) && l.Colour is OutputColour.Red or OutputColour.Black))
+            notes.Add(new("unusual-colour", "An unusual colour was logged in the last week. Some foods can cause this, but if it is unexplained or persists, please contact your paediatrician."));
+
+        // Fewer wees than usual in the last 24h compared with the earlier average, needing >= 3 earlier days of data.
+        var earlier = logs.Where(l => l.Type == LogType.Pee && l.OccurredAt < now.AddHours(-24)).ToList();
+        var earlierDays = earlier.Select(l => DateOnly.FromDateTime(l.OccurredAt)).Distinct().Count();
+        if (earlierDays >= 3)
+        {
+            var avgPerDay = earlier.Count / (double)earlierDays;
+            var last24 = logs.Count(l => l.Type == LogType.Pee && l.OccurredAt >= now.AddHours(-24));
+            if (avgPerDay >= 4 && last24 <= avgPerDay / 2)
+                notes.Add(new("fewer-wees", "Fewer wees than usual were logged in the last 24 hours. Encourage fluids, and contact your doctor if there are signs of dehydration or no wee for 8+ hours."));
+        }
+        return notes;
     }
 }

@@ -12,8 +12,14 @@ public enum LogType
     Sit = 3,        // sat on the potty, nothing happened
     Fluid = 4,
     Reward = 5,
-    Note = 6
+    Note = 6,
+    Food = 7        // meal or snack
 }
+
+/// <summary>Rough size, used when parents don't measure: dribble/sip, small, medium, large.</summary>
+public enum LogSize { Tiny = 0, Small = 1, Medium = 2, Large = 3 }
+
+public enum OutputColour { Normal = 0, Pale = 1, Dark = 2, Green = 3, Red = 4, Black = 5 }
 
 public class User
 {
@@ -51,8 +57,17 @@ public class LogEntry
     public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
     /// <summary>Optional: for Pee/Poop/Sit, true if it happened in the potty/toilet.</summary>
     public bool? InPotty { get; set; }
-    /// <summary>Fluid volume in ml (Fluid), or Bristol stool scale 1-7 (Poop).</summary>
+    /// <summary>Volume in ml: drink amount (Fluid) or measured urine (Pee).</summary>
     public int? Amount { get; set; }
+    /// <summary>Rough size for Pee, Poop, Fluid and Food when no exact amount is known.</summary>
+    public LogSize? Size { get; set; }
+    /// <summary>Bristol stool scale 1-7 (Poop only).</summary>
+    public int? StoolType { get; set; }
+    public OutputColour? Colour { get; set; }
+    /// <summary>Fluid: water/milk/juice/...; Food: meal/snack.</summary>
+    public string? Category { get; set; }
+    /// <summary>Comma-separated lowercase tags, e.g. "fibre,dairy" (Fluid and Food).</summary>
+    public string? Tags { get; set; }
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

@@ -37,11 +37,21 @@ Auth: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` -> J
 | Endpoint | Purpose |
 |---|---|
 | `GET/POST /api/children`, `GET/PUT/DELETE /api/children/{id}` | Child profiles (Free plan: 1 child, else `402`) |
-| `GET/POST /api/children/{id}/logs`, `DELETE .../logs/{logId}` | Log `Pee, Poop, Accident, Sit, Fluid, Reward, Note` (`inPotty`, `amount`, `notes`, `occurredAt`) |
-| `GET /api/children/{id}/insights?days=7` | Success rate, dry streak, avg gap, next-visit prediction, hourly histogram, daily series |
+| `GET/POST /api/children/{id}/logs`, `DELETE .../logs/{logId}` | Log `Pee, Poop, Accident, Sit, Fluid, Food, Reward, Note`. Common: `occurredAt`, `inPotty`, `notes`. Intake/output detail: `amount` (ml; Fluid/Pee), `size` (`Tiny/Small/Medium/Large`; Pee/Poop/Fluid/Food), `stoolType` (Bristol 1-7; Poop), `colour` (Pee/Poop), `category` and `tags` (Fluid/Food). Inconsistent combinations return `400`. |
+| `GET /api/children/{id}/insights?days=7` | Success rate, dry streak, hourly histogram, daily series, **daily intake/output balance**, **drink-to-wee lag**, avg wee/stool intervals, non-diagnostic **notes** (no stool for 3+ days, hard stools, unusual colour, fewer wees than usual) |
+| `GET /api/children/{id}/prediction` | Next likely potty visit: best model plus alternatives, each with confidence and reason |
 | `GET /api/articles`, `/api/articles/{slug}` | Guides; premium bodies are locked for Free users |
 | `GET /api/plans`, `POST /api/waitlist` | Public pricing and waitlist |
 | `/api/admin/*` (Admin role) | stats, users, articles CRUD, plans, waitlist |
+
+## Prediction models
+Predictors implement `IPottyPredictor` (`Services/Prediction.cs`) and are registered in `Program.cs`; `PredictionService` returns the most confident one. Included: `median-gap` (baseline) and `fluid-aware` (uses the child's own drink-to-wee delay; needs 5+ samples and a recent drink with no wee since). To add a model, implement the interface, return `null` when data is insufficient, and register it as a singleton.
+
+## Tests
+`cd backend && dotnet test` (unit tests for predictors/insights, plus API tests against a temporary SQLite file).
+
+## Schema note
+The database is created with `EnsureCreated`, which does not alter existing tables. After pulling this change, delete your local `pottytrain.db` (migrations are on the to-do list).
 
 ## Not built yet
 Payments, email sending, refresh tokens/password reset, caregiver sharing, automated tests, EF migrations, rate limiting. See `docs/PLAN.md`.

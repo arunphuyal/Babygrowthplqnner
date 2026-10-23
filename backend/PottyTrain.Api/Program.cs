@@ -15,6 +15,9 @@ if (string.IsNullOrEmpty(jwt.Key) || jwt.Key.Length < 32)
 builder.Services.AddDbContext<AppDb>(o => o.UseSqlite(builder.Configuration.GetConnectionString("Default") ?? "Data Source=pottytrain.db"));
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddSingleton<IPottyPredictor, MedianGapPredictor>();
+builder.Services.AddSingleton<IPottyPredictor, FluidAwarePredictor>();
+builder.Services.AddSingleton<PredictionService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o =>
 {

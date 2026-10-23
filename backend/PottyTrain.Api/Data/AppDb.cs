@@ -19,6 +19,8 @@ public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
         b.Entity<Child>().HasOne(c => c.Owner).WithMany(u => u.Children).HasForeignKey(c => c.OwnerId).OnDelete(DeleteBehavior.Cascade);
         b.Entity<LogEntry>().HasOne(l => l.Child).WithMany(c => c.Logs).HasForeignKey(l => l.ChildId).OnDelete(DeleteBehavior.Cascade);
         b.Entity<LogEntry>().HasIndex(l => new { l.ChildId, l.OccurredAt });
+        b.Entity<LogEntry>().Property(l => l.Category).HasMaxLength(30);
+        b.Entity<LogEntry>().Property(l => l.Tags).HasMaxLength(200);
         b.Entity<Article>().HasIndex(a => a.Slug).IsUnique();
         b.Entity<WaitlistEntry>().HasIndex(w => w.Email).IsUnique();
         b.Entity<PlanOffer>().Property(p => p.MonthlyPrice).HasPrecision(10, 2);
