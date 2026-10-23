@@ -42,3 +42,6 @@ public record ArticleRequest([Required] string Slug, [Required] string Title, st
 public record PlanOfferRequest(Plan Plan, [Required] string Name, decimal MonthlyPrice, decimal YearlyPrice, string Features, bool IsActive);
 public record UpdateUserRequest(Plan? Plan, bool? IsActive, UserRole? Role);
 public record WaitlistRequest([Required, EmailAddress] string Email, string? Source);
+
+public record DonationCheckoutRequest(long AmountCents);
+public record DonationConfigDto(bool Enabled, string Currency, int[] PresetsCents, int MinCents, int MaxCents);

@@ -32,9 +32,7 @@ public static class Seeder
 
         if (!await db.Articles.AnyAsync())
         {
-            db.Articles.AddRange(
-                new Article { Slug = "signs-of-readiness", Title = "7 signs your toddler is ready", Summary = "Dry for 2 hours, interest in the toilet, and more.", Body = "Look for: staying dry 2+ hours, telling you when they need to go, following simple instructions, and showing interest in the toilet.", IsPublished = true },
-                new Article { Slug = "three-day-method", Title = "The 3-day method, step by step", Summary = "A focused weekend approach many families use.", Body = "Premium guide content goes here.", IsPremium = true, IsPublished = true });
+            db.Articles.AddRange(Guides.All);
         }
         await db.SaveChangesAsync();
     }

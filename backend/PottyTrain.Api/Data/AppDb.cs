@@ -11,6 +11,7 @@ public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<PlanOffer> PlanOffers => Set<PlanOffer>();
     public DbSet<WaitlistEntry> Waitlist => Set<WaitlistEntry>();
+    public DbSet<Donation> Donations => Set<Donation>();
     public DbSet<ChildCaregiver> Caregivers => Set<ChildCaregiver>();
     public DbSet<ChildInvite> Invites => Set<ChildInvite>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
@@ -31,6 +32,7 @@ public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
         b.Entity<ChildCaregiver>().HasOne(c => c.User).WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
         b.Entity<ChildInvite>().HasIndex(i => i.CodeHash).IsUnique();
         b.Entity<ChildInvite>().HasOne(i => i.Child).WithMany().HasForeignKey(i => i.ChildId).OnDelete(DeleteBehavior.Cascade);
+        b.Entity<Donation>().HasIndex(d => d.StripeSessionId).IsUnique();
         b.Entity<RefreshToken>().HasIndex(t => t.TokenHash).IsUnique();
         b.Entity<RefreshToken>().HasIndex(t => t.UserId);
         b.Entity<PasswordResetToken>().HasIndex(t => t.TokenHash).IsUnique();

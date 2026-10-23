@@ -161,6 +161,34 @@ namespace PottyTrain.Api.Data.Migrations
                     b.ToTable("Invites");
                 });
 
+            modelBuilder.Entity("PottyTrain.Api.Domain.Donation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("AmountCents")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StripeSessionId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StripeSessionId")
+                        .IsUnique();
+
+                    b.ToTable("Donations");
+                });
+
             modelBuilder.Entity("PottyTrain.Api.Domain.LogEntry", b =>
                 {
                     b.Property<Guid>("Id")

@@ -9,9 +9,9 @@ using PottyTrain.Api.Services;
 
 namespace PottyTrain.Api.Controllers;
 
-/// <summary>Share a child with other caregivers (partner, grandparent, nanny). Inviting requires the owner to be on the Family plan.</summary>
+/// <summary>Share a child with other caregivers (partner, grandparent, nanny). Free while Features:AllFree is on; otherwise needs the Family plan.</summary>
 [Authorize, Route("api")]
-public class CaregiversController(AppDb db) : ApiBase
+public class CaregiversController(AppDb db, Entitlements entitlements) : ApiBase
 {
     private static readonly TimeSpan InviteLifetime = TimeSpan.FromDays(7);
 
@@ -21,7 +21,7 @@ public class CaregiversController(AppDb db) : ApiBase
     public async Task<ActionResult<InviteResponse>> CreateInvite(Guid id, InviteRequest req)
     {
         if (await OwnedChild(id) is null) return NotFound();
-        if ((await db.Users.FindAsync(UserId))!.EffectivePlan != Plan.Family)
+        if (!entitlements.CanShare((await db.Users.FindAsync(UserId))!))
             return StatusCode(402, new { error = "Sharing with caregivers requires the Family plan." });
         var code = Secrets.NewToken(9); // 12 url-safe chars; single use, 7 days, only the hash is stored
         var invite = new ChildInvite { ChildId = id, CodeHash = Secrets.Hash(code), CanEdit = req.CanEdit, ExpiresAt = DateTime.UtcNow.Add(InviteLifetime) };

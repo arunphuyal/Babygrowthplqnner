@@ -154,3 +154,13 @@ public class PasswordResetToken
     public DateTime ExpiresAt { get; set; }
     public DateTime? UsedAt { get; set; }
 }
+
+/// <summary>A completed Stripe donation. Only the amount is kept; Stripe holds the donor's details and sends the receipt.</summary>
+public class Donation
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string StripeSessionId { get; set; } = "";
+    public long AmountCents { get; set; }
+    public string Currency { get; set; } = "usd";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}

@@ -5,17 +5,18 @@ using Microsoft.EntityFrameworkCore;
 using PottyTrain.Api.Data;
 using PottyTrain.Api.Domain;
 using PottyTrain.Api.Dtos;
+using PottyTrain.Api.Services;
 
 namespace PottyTrain.Api.Controllers;
 
 [Route("api")]
-public class PublicController(AppDb db) : ApiBase
+public class PublicController(AppDb db, Entitlements entitlements) : ApiBase
 {
     [HttpGet("plans")]
     public async Task<List<PlanOffer>> Plans() =>
         await db.PlanOffers.Where(p => p.IsActive).OrderBy(p => p.Plan).ToListAsync();
 
-    [HttpPost("waitlist")]
+    [HttpPost("waitlist"), Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("public")]
     public async Task<IActionResult> Join(WaitlistRequest req)
     {
         var email = req.Email.Trim().ToLowerInvariant();
@@ -39,7 +40,7 @@ public class PublicController(AppDb db) : ApiBase
         if (a is null) return NotFound();
         var unlocked = !a.IsPremium;
         if (!unlocked && User.Identity?.IsAuthenticated == true)
-            unlocked = (await db.Users.FindAsync(UserId))?.EffectivePlan is Plan.Premium or Plan.Family;
+            unlocked = (await db.Users.FindAsync(UserId)) is { } u && entitlements.IsPremium(u);
         return Ok(new { a.Slug, a.Title, a.Summary, a.IsPremium, Body = unlocked ? a.Body : null, Locked = !unlocked });
     }
 }

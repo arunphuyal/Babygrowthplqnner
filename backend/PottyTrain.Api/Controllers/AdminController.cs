@@ -35,6 +35,8 @@ public class AdminController(AppDb db) : ApiBase
             logsByType30d = (await db.Logs.Where(l => l.OccurredAt >= now.AddDays(-30)).GroupBy(l => l.Type)
                 .Select(g => new { type = g.Key, count = g.Count() }).ToListAsync()).Select(x => new { type = x.type.ToString(), x.count }),
             waitlist = await db.Waitlist.CountAsync(),
+            donationsCount = await db.Donations.CountAsync(),
+            donationsTotalCents = await db.Donations.SumAsync(d => (long?)d.AmountCents) ?? 0,
             signupsLast30Days = signups.OrderBy(s => s.date)
         });
     }
@@ -62,6 +64,18 @@ public class AdminController(AppDb db) : ApiBase
         if (req.Role is { } role) u.Role = role;
         await db.SaveChangesAsync();
         return AuthController.ToDto(u);
+    }
+
+    [HttpGet("donations")]
+    public async Task<IActionResult> Donations()
+    {
+        var items = await db.Donations.OrderByDescending(d => d.CreatedAt).Take(200).ToListAsync();
+        return Ok(new
+        {
+            count = await db.Donations.CountAsync(),
+            totalCents = await db.Donations.SumAsync(d => (long?)d.AmountCents) ?? 0,
+            items = items.Select(d => new { d.Id, d.AmountCents, d.Currency, d.CreatedAt })
+        });
     }
 
     [HttpGet("waitlist")]

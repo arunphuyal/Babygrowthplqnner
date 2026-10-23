@@ -16,6 +16,10 @@ if (string.IsNullOrEmpty(jwt.Key) || jwt.Key.Length < 32)
 builder.Services.AddDbContext<AppDb>(o => o.UseSqlite(builder.Configuration.GetConnectionString("Default") ?? "Data Source=pottytrain.db"));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
 builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+builder.Services.Configure<FeatureOptions>(builder.Configuration.GetSection("Features"));
+builder.Services.AddSingleton<Entitlements>();
+builder.Services.Configure<DonationOptions>(builder.Configuration.GetSection("Donations"));
+builder.Services.AddSingleton<IDonationCheckout, StripeDonationCheckout>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddSingleton<IPottyPredictor, MedianGapPredictor>();
@@ -37,12 +41,16 @@ builder.Services.AddAuthorization();
 // Brute-force protection for credential endpoints. Per client IP; behind a reverse proxy enable forwarded headers
 // (ASPNETCORE_FORWARDEDHEADERS_ENABLED=true) so the real client address is used.
 var authLimit = builder.Configuration.GetValue("RateLimit:AuthPerMinute", 10);
+var publicLimit = builder.Configuration.GetValue("RateLimit:PublicPerMinute", 30);
 builder.Services.AddRateLimiter(o =>
 {
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = authLimit, Window = TimeSpan.FromMinutes(1) }));
+    o.AddPolicy("public", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = publicLimit, Window = TimeSpan.FromMinutes(1) }));
 });
 
 var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];

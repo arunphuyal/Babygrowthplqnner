@@ -6,6 +6,7 @@ import Users from './pages/Users'
 import Articles from './pages/Articles'
 import Plans from './pages/Plans'
 import Waitlist from './pages/Waitlist'
+import Donations from './pages/Donations'
 
 function Layout() {
   const nav = useNavigate()
@@ -18,6 +19,7 @@ function Layout() {
         <NavLink to="/users">Users</NavLink>
         <NavLink to="/articles">Content</NavLink>
         <NavLink to="/plans">Plans &amp; pricing</NavLink>
+        <NavLink to="/donations">Donations</NavLink>
         <NavLink to="/waitlist">Waitlist</NavLink>
         <button className="link" onClick={() => { auth.clear(); nav('/login') }}>Sign out</button>
       </aside>
@@ -35,6 +37,7 @@ export default function App() {
         <Route path="users" element={<Users />} />
         <Route path="articles" element={<Articles />} />
         <Route path="plans" element={<Plans />} />
+        <Route path="donations" element={<Donations />} />
         <Route path="waitlist" element={<Waitlist />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

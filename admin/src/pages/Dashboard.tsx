@@ -9,8 +9,8 @@ export default function Dashboard() {
   if (!s) return <p>Loading…</p>
   const max = Math.max(1, ...s.signupsLast30Days.map(d => d.count))
   const tiles: [string, string | number][] = [
-    ['Total users', s.totalUsers], ['Active (7d)', s.activeLast7Days], ['Paying users', s.payingUsers],
-    ['Est. MRR', `$${s.estimatedMrr.toFixed(2)}`], ['Children', s.totalChildren], ['Active children (7d)', s.activeChildren7d], ['Shared children', s.sharedChildren], ['Logs (7d)', s.logsLast7Days], ['Waitlist', s.waitlist],
+    ['Total users', s.totalUsers], ['Active (7d)', s.activeLast7Days], 
+    ['Donations', `${s.donationsCount} · ${(s.donationsTotalCents / 100).toFixed(2)}`], ['Children', s.totalChildren], ['Active children (7d)', s.activeChildren7d], ['Shared children', s.sharedChildren], ['Logs (7d)', s.logsLast7Days], ['Waitlist', s.waitlist],
   ]
   return (
     <>

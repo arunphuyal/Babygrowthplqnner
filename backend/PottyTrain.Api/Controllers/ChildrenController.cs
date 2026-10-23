@@ -9,9 +9,8 @@ using PottyTrain.Api.Services;
 namespace PottyTrain.Api.Controllers;
 
 [Authorize, Route("api/children")]
-public class ChildrenController(AppDb db, PredictionService predictions) : ApiBase
+public class ChildrenController(AppDb db, PredictionService predictions, Entitlements entitlements) : ApiBase
 {
-    private const int FreeChildLimit = 1;
     private const int FreeInsightDays = 7;
 
     private static ChildDto ToDto(Child c, bool isOwner, bool canEdit) =>
@@ -29,7 +28,7 @@ public class ChildrenController(AppDb db, PredictionService predictions) : ApiBa
         return cg is null ? null : new(c, false, cg.CanEdit);
     }
 
-    private async Task<bool> OwnerIsPremium(Child c) => (await db.Users.FindAsync(c.OwnerId))!.EffectivePlan != Plan.Free;
+    private async Task<bool> OwnerIsPremium(Child c) => entitlements.IsPremium((await db.Users.FindAsync(c.OwnerId))!);
 
     private static string? ValidateZone(string? id)
     {
@@ -52,8 +51,8 @@ public class ChildrenController(AppDb db, PredictionService predictions) : ApiBa
         if (ValidateZone(req.TimeZoneId) is { } zoneError) return BadRequest(new { error = zoneError });
         var user = await db.Users.FindAsync(UserId);
         var count = await db.Children.CountAsync(c => c.OwnerId == UserId);
-        if (user!.EffectivePlan == Plan.Free && count >= FreeChildLimit)
-            return StatusCode(402, new { error = "Free plan supports one child. Upgrade to add more." });
+        if (count >= entitlements.MaxChildren(user!))
+            return StatusCode(402, new { error = "You have reached the maximum number of children for your plan." });
         var child = new Child
         {
             OwnerId = UserId, Name = req.Name.Trim(), BirthDate = req.BirthDate, TrainingStartDate = req.TrainingStartDate,

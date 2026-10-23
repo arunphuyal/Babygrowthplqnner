@@ -9,6 +9,24 @@ Potty-training tracker for parents (think "Flo", but for toddlers). This repo ho
 | `web/` | Public landing page + waitlist | React + TypeScript + Vite |
 | `docs/PLAN.md` | Roadmap, monetisation, competitor research | |
 
+## Business model (for now)
+PottyTrain is **free for everyone**. It is funded by (1) one-off **Stripe donations** and (2) **Google AdSense on the public website only** (the guides pages), never inside the tracking app. `Features:AllFree` (default `true`) switches the paywall off; set it to `false` to enforce Free/Premium/Family again (the plan code, RevenueCat webhook and admin plan tools are still in place). Sign-in is by email and password, with password reset by email.
+
+### Stripe donations
+1. Create a Stripe account. Set `Donations__StripeSecretKey` and `Donations__StripeWebhookSecret` as environment variables. Never commit keys.
+2. In Stripe, add a webhook endpoint `https://<api>/api/donations/webhook/stripe` for the event `checkout.session.completed` and copy its signing secret.
+3. Set `Donations__SuccessUrl` and `Donations__CancelUrl` to your website (`/?donation=thanks`), and optionally `Donations__Currency` and `Donations__PresetsCents`.
+
+Donors pay on Stripe's hosted page. The API stores only the amount and session id (idempotent). Test with Stripe test keys and `stripe listen --forward-to localhost:5080/api/donations/webhook/stripe`. Check the local rules for accepting donations: a personal account and a registered non-profit have different tax and Stripe requirements.
+
+### Google AdSense (website)
+1. Publish the site on your own domain and apply at adsense.google.com. AdSense wants real content and a privacy policy. The guides pages and `/privacy` are included; add more guides in the admin portal ("Content").
+2. After approval set `VITE_ADSENSE_CLIENT` (ca-pub-...) and `VITE_ADSENSE_SLOT` at build time (see `web/.env.example`) and put the line from AdSense into `web/public/ads.txt`.
+3. Ads only load after a visitor clicks "Allow ads", and are requested as non-personalised. **Before serving visitors in the EEA/UK you must use a Google-certified consent platform** (Google's free "Privacy & messaging" tool works); the built-in banner is not one.
+4. Keep `VITE_CONTACT_EMAIL` and the wording in `web/src/pages/Privacy.tsx` up to date and have the privacy policy reviewed for your jurisdiction.
+
+The site is a single-page app: configure your host to serve `index.html` for unknown paths.
+
 ## Run locally
 
 ```bash
