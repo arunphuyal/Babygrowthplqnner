@@ -89,7 +89,8 @@ public class AdminController(AppDb db) : ApiBase
     public async Task<ActionResult<Article>> CreateArticle(ArticleRequest r)
     {
         if (await db.Articles.AnyAsync(a => a.Slug == r.Slug)) return Conflict(new { error = "Slug already exists" });
-        var a = new Article { Slug = r.Slug, Title = r.Title, Summary = r.Summary, Body = r.Body, IsPremium = r.IsPremium, IsPublished = r.IsPublished };
+        var a = new Article { Slug = r.Slug, Title = r.Title, Summary = r.Summary, Body = r.Body, IsPremium = r.IsPremium, IsPublished = r.IsPublished,
+            MetaTitle = r.MetaTitle, MetaDescription = r.MetaDescription, FocusKeyword = r.FocusKeyword };
         db.Articles.Add(a);
         await db.SaveChangesAsync();
         return a;
@@ -103,6 +104,7 @@ public class AdminController(AppDb db) : ApiBase
         if (await db.Articles.AnyAsync(x => x.Slug == r.Slug && x.Id != id)) return Conflict(new { error = "Slug already exists" });
         a.Slug = r.Slug; a.Title = r.Title; a.Summary = r.Summary; a.Body = r.Body;
         a.IsPremium = r.IsPremium; a.IsPublished = r.IsPublished; a.UpdatedAt = DateTime.UtcNow;
+        a.MetaTitle = r.MetaTitle; a.MetaDescription = r.MetaDescription; a.FocusKeyword = r.FocusKeyword;
         await db.SaveChangesAsync();
         return a;
     }

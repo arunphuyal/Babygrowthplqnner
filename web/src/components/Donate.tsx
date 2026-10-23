@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { API } from '../site'
+import { track } from '../trackers'
 
 interface Config { enabled: boolean; currency: string; presetsCents: number[]; minCents: number; maxCents: number }
 
@@ -11,6 +12,7 @@ export default function Donate() {
   const [error, setError] = useState('')
   const status = new URLSearchParams(window.location.search).get('donation')
 
+  useEffect(() => { if (status === 'thanks') track('donate_thanks') }, [status])
   useEffect(() => { fetch(`${API}/api/donations/config`).then(r => r.json()).then(setCfg).catch(() => setCfg(undefined)).finally(() => setLoaded(true)) }, [])
 
   const money = (cents: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: cfg?.currency ?? 'usd', maximumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100)
@@ -19,6 +21,7 @@ export default function Donate() {
     setError('')
     if (!cfg || !Number.isFinite(cents) || cents < cfg.minCents || cents > cfg.maxCents) { setError(`Please choose between ${money(cfg?.minCents ?? 100)} and ${money(cfg?.maxCents ?? 50000)}.`); return }
     setBusy(true)
+    track('donate_start', { value: cents / 100 })
     try {
       const r = await fetch(`${API}/api/donations/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amountCents: cents }) })
       const body = await r.json()

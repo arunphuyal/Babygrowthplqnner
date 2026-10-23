@@ -89,6 +89,10 @@ public class Article
     public string Body { get; set; } = "";
     public bool IsPremium { get; set; }
     public bool IsPublished { get; set; }
+    /// <summary>Optional SEO overrides; the page falls back to Title / Summary when empty.</summary>
+    public string? MetaTitle { get; set; }
+    public string? MetaDescription { get; set; }
+    public string? FocusKeyword { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -163,4 +167,19 @@ public class Donation
     public long AmountCents { get; set; }
     public string Currency { get; set; } = "usd";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>A revocable, expiring link to a read-only report for a fixed date range (e.g. for a daycare or paediatrician). Only the token hash is stored.</summary>
+public class ReportShare
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ChildId { get; set; }
+    public Child? Child { get; set; }
+    public string TokenHash { get; set; } = "";
+    public DateOnly From { get; set; }
+    public DateOnly To { get; set; }
+    public bool IncludeLogs { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? RevokedAt { get; set; }
 }

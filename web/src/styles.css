@@ -51,3 +51,4 @@ a.feature { display:block; color:inherit; } a.feature:hover { border-color:var(-
 .consent p { margin:0; font-size:.9rem; } .consent a { color:#bfeede; } .consent div { display:flex; gap:8px; } .consent .ghost { color:#fff; border-color:#fff6; }
 .support { max-width:640px; margin:auto; text-align:center; } .amounts { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:18px 0; }
 .custom { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:10px; } .custom input { padding:12px 16px; border-radius:999px; border:1px solid var(--line); font-size:1rem; width:180px; }
+.consent .choices { display:grid; gap:6px; width:100%; font-size:.85rem; } .consent .choices label { display:flex; gap:8px; align-items:center; }

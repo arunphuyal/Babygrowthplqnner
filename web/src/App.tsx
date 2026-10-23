@@ -1,11 +1,24 @@
-import { Link, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, Route, Routes, useLocation } from 'react-router-dom'
+import { useConsent } from './consent'
+import { applyConsent, trackPageView } from './trackers'
+import { useSeo } from './seo'
 import { SITE } from './site'
 import { ConsentBanner } from './components/Ads'
 import Home from './pages/Home'
 import Privacy from './pages/Privacy'
 import { GuideList, GuidePage } from './pages/Guides'
 
+function NotFound() {
+  useSeo({ title: 'Page not found – PottyTrain', path: '/404', noindex: true })
+  return <div className="page"><h1>Page not found</h1><Link to="/">Go home</Link></div>
+}
+
 export default function App() {
+  const consent = useConsent()
+  const { pathname } = useLocation()
+  useEffect(() => { applyConsent(consent.analytics, consent.advertising) }, [consent.analytics, consent.advertising])
+  useEffect(() => { trackPageView(pathname) }, [pathname, consent.analytics, consent.advertising])
   return (
     <>
       <header className="nav">
@@ -23,7 +36,7 @@ export default function App() {
           <Route path="/guides" element={<GuideList />} />
           <Route path="/guides/:slug" element={<GuidePage />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route path="*" element={<div className="page"><h1>Page not found</h1><Link to="/">Go home</Link></div>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <footer>

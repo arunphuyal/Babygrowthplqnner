@@ -24,3 +24,6 @@ th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line)
 .err { color:#c0392b; } .ok { color:var(--green-d); font-weight:600; } .muted { color:var(--muted); }
 .login { min-height:100vh; display:grid; place-items:center; } .login .panel { width:min(380px,92vw); }
 @media (max-width:760px) { .shell { grid-template-columns:1fr; } aside { flex-direction:row; flex-wrap:wrap; } aside h1 { width:100%; } aside .link { margin:0; } }
+
+.seo { border:1px solid var(--line); border-radius:10px; padding:12px 14px; display:grid; gap:8px; background:#fafdfb; } .seo ul { list-style:none; padding:0; margin:0; display:grid; gap:4px; font-size:.88rem; }
+.serp { display:grid; gap:2px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; } .serp-url { color:#1e7a46; font-size:.78rem; } .serp-title { color:#1a0dab; font-size:1.05rem; } .serp-desc { color:#4d5156; font-size:.85rem; }

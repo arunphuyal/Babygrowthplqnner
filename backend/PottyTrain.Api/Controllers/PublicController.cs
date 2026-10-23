@@ -31,7 +31,7 @@ public class PublicController(AppDb db, Entitlements entitlements) : ApiBase
     [HttpGet("articles")]
     public async Task<IActionResult> Articles() =>
         Ok(await db.Articles.Where(a => a.IsPublished).OrderByDescending(a => a.CreatedAt)
-            .Select(a => new { a.Slug, a.Title, a.Summary, a.IsPremium }).ToListAsync());
+            .Select(a => new { a.Slug, a.Title, a.Summary, a.IsPremium, a.UpdatedAt }).ToListAsync());
 
     [HttpGet("articles/{slug}")]
     public async Task<IActionResult> Article(string slug)
@@ -41,6 +41,6 @@ public class PublicController(AppDb db, Entitlements entitlements) : ApiBase
         var unlocked = !a.IsPremium;
         if (!unlocked && User.Identity?.IsAuthenticated == true)
             unlocked = (await db.Users.FindAsync(UserId)) is { } u && entitlements.IsPremium(u);
-        return Ok(new { a.Slug, a.Title, a.Summary, a.IsPremium, Body = unlocked ? a.Body : null, Locked = !unlocked });
+        return Ok(new { a.Slug, a.Title, a.Summary, a.IsPremium, a.MetaTitle, a.MetaDescription, a.CreatedAt, a.UpdatedAt, Body = unlocked ? a.Body : null, Locked = !unlocked });
     }
 }

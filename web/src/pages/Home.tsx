@@ -1,5 +1,7 @@
 import { useEffect, useState, FormEvent } from 'react'
-import { API } from '../site'
+import { API, SITE } from '../site'
+import { useSeo, organizationLd, websiteLd, faqLd } from '../seo'
+import { track, campaignSuffix } from '../trackers'
 import Donate from '../components/Donate'
 
 const features = [
@@ -20,8 +22,8 @@ const faqs = [
 ]
 
 export default function Home() {
+  useSeo({ title: 'PottyTrain – Free potty training tracker for parents', description: SITE.description, path: '/', jsonLd: [organizationLd(), websiteLd(), faqLd(faqs)] })
   useEffect(() => {
-    document.title = 'PottyTrain – Potty training, made calm'
     if (window.location.hash) document.querySelector(window.location.hash)?.scrollIntoView() // arrived via /#support from another page
   }, [])
   return (
@@ -78,7 +80,8 @@ function WaitlistForm({ source }: { source: string }) {
     e.preventDefault()
     setState('loading')
     try {
-      const r = await fetch(`${API}/api/waitlist`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, source }) })
+      const r = await fetch(`${API}/api/waitlist`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, source: (source + campaignSuffix()).slice(0, 200) }) })
+      if (r.ok) track('waitlist_join', { source })
       setState(r.ok ? 'done' : 'error')
     } catch { setState('error') }
   }

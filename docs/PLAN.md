@@ -35,6 +35,7 @@ Goal: a public site you can safely point real parents at.
 - **Email:** transactional provider (e.g. Postmark/SendGrid/SES) with SPF/DKIM set up; replace the SMTP stub if needed.
 - **Observability:** error tracking (Sentry or Application Insights), structured logs, uptime check on `/health`, basic dashboards.
 - **Money and legal:** go live with Stripe (test mode first, then live keys and the webhook), apply for AdSense once there are 10+ guides, have the privacy policy and a short terms page reviewed, add a certified consent tool for EEA/UK, trademark and domain check on the name.
+- **SEO and tracking:** deploy the prerendered site with the directory-index hosting rule, submit the sitemap, set `VITE_SITE_URL`; decide whether to enable GA4 and the Meta Pixel (both consent-gated; keep them off the app and shared reports); add a certified consent platform for the EEA/UK.
 - **Content:** write at least 10 solid guides (readiness, methods, night training, regression, constipation basics, daycare, travel, siblings, special needs resources, FAQs), reviewed by someone qualified (health visitor or paediatric nurse) if you can.
 - **Exit criteria:** all CI green, a staging environment, restore drill done, Stripe test donation recorded in admin, privacy page live, Lighthouse score above 90 on the landing page.
 
@@ -67,7 +68,7 @@ Goal: parents can actually track. This is the product; the site and API exist to
 Order by what beta data shows parents want; likely candidates:
 - **Phase-aware journey:** readiness, intensive days, consolidation, night training, outings, regression, with a daily checklist per phase and gentle content.
 - **Rewards:** sticker charts, milestones, certificates, child-facing screens.
-- **Reports:** shareable PDF/link for daycare or a paediatrician; read-only caregiver links for nannies without an account.
+- **Reports (first version built):** JSON/HTML/CSV reports and expiring share links exist. Next: in-app report screen and share sheet, server-side PDF if needed, weekly email summary (opt-in), and a clinician-friendly layout reviewed with a health professional.
 - **Smarter predictions:** store every prediction and its error (`PredictionRecord`), compare models on mean absolute error and the share within 15 minutes, add a time-of-day model and an exponentially weighted gap model, then consider an offline-trained ML model served through the same interface. Keep a plain-language "why" on every prediction.
 - **Reading the data better:** nap and meal context tags, constipation trend charts, week-over-week summaries.
 - **Convenience:** home-screen widgets, lock-screen quick log, Apple Watch / Wear OS, voice logging.

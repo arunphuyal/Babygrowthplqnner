@@ -1,11 +1,25 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { api, Article } from '../api'
+import { seoChecks } from '../seo'
 
-const blank = { slug: '', title: '', summary: '', body: '', isPremium: false, isPublished: false }
+interface Draft { slug: string; title: string; summary: string; body: string; isPremium: boolean; isPublished: boolean; metaTitle?: string; metaDescription?: string; focusKeyword?: string }
+const blank: Draft = { slug: '', title: '', summary: '', body: '', isPremium: false, isPublished: false, metaTitle: '', metaDescription: '', focusKeyword: '' }
+
+function SeoPanel({ a }: { a: Draft }) {
+  const checks = seoChecks(a)
+  const passed = checks.filter(c => c.ok).length
+  return (
+    <div className="seo">
+      <b>SEO checklist: {passed} of {checks.length}</b>
+      <div className="serp"><span className="serp-url">/guides/{a.slug || 'your-slug'}</span><span className="serp-title">{a.metaTitle || a.title || 'Title'}</span><span className="serp-desc">{a.metaDescription || a.summary || 'Description'}</span></div>
+      <ul>{checks.map(c => <li key={c.label} className={c.ok ? 'ok' : ''}>{c.ok ? '✅' : '⚠️'} {c.label}{!c.ok && <small className="muted"> ({c.hint})</small>}</li>)}</ul>
+    </div>
+  )
+}
 
 export default function Articles() {
   const [items, setItems] = useState<Article[]>([])
-  const [editing, setEditing] = useState<(typeof blank & { id?: string }) | null>(null)
+  const [editing, setEditing] = useState<(Draft & { id?: string }) | null>(null)
   const [err, setErr] = useState('')
   const load = () => api<Article[]>('/admin/articles').then(setItems).catch(e => setErr(e.message))
   useEffect(() => { load() }, [])
@@ -32,6 +46,10 @@ export default function Articles() {
       <label>Slug<input required pattern="[a-z0-9-]+" value={editing.slug} onChange={e => setEditing({ ...editing, slug: e.target.value })} /></label>
       <label>Summary<input value={editing.summary} onChange={e => setEditing({ ...editing, summary: e.target.value })} /></label>
       <label>Body<textarea rows={10} value={editing.body} onChange={e => setEditing({ ...editing, body: e.target.value })} /></label>
+      <label>Focus keyword<input placeholder="e.g. potty training regression" value={editing.focusKeyword ?? ''} onChange={e => setEditing({ ...editing, focusKeyword: e.target.value })} /></label>
+      <label>SEO title (optional, defaults to the title)<input maxLength={120} value={editing.metaTitle ?? ''} onChange={e => setEditing({ ...editing, metaTitle: e.target.value })} /></label>
+      <label>SEO description (optional, defaults to the summary)<textarea rows={2} maxLength={320} value={editing.metaDescription ?? ''} onChange={e => setEditing({ ...editing, metaDescription: e.target.value })} /></label>
+      <SeoPanel a={editing} />
       <label className="check"><input type="checkbox" checked={editing.isPremium} onChange={e => setEditing({ ...editing, isPremium: e.target.checked })} /> Premium only</label>
       <label className="check"><input type="checkbox" checked={editing.isPublished} onChange={e => setEditing({ ...editing, isPublished: e.target.checked })} /> Published</label>
       {err && <p className="err">{err}</p>}

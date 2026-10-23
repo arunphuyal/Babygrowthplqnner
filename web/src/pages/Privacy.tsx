@@ -1,11 +1,11 @@
-import { useEffect } from 'react'
 import { SITE } from '../site'
+import { useSeo } from '../seo'
 import { setConsent, useConsent } from '../consent'
 
 /** Starting-point privacy policy. Have it reviewed for your jurisdiction (GDPR/UK GDPR/CCPA/COPPA) and fill in your legal entity. */
 export default function Privacy() {
   const consent = useConsent()
-  useEffect(() => { document.title = 'Privacy policy – PottyTrain' }, [])
+  useSeo({ title: 'Privacy policy – PottyTrain', description: 'How PottyTrain handles your data, cookies, advertising and your child\'s tracking information.', path: '/privacy' })
   return (
     <article className="page prose">
       <h1>Privacy policy</h1>
@@ -18,10 +18,14 @@ export default function Privacy() {
         <li><b>Website:</b> if you join the waitlist we store your email. Our servers keep standard technical logs.</li>
         <li><b>Donations:</b> payments are handled by Stripe. We receive only the amount and a transaction reference, never your card details.</li>
       </ul>
-      <h2>Advertising</h2>
-      <p>The public website (for example the guides) may show ads from Google AdSense. With your permission, Google and its partners may use cookies to serve and measure ads; we ask you before loading any ads and we request non-personalised ads. <b>There are no ads in the child tracking area, and we never share your child's data with advertisers.</b></p>
-      <p>Your ad choice: <b>{consent === 'granted' ? 'ads allowed' : consent === 'denied' ? 'ads declined' : 'not chosen yet'}</b>.{' '}
-        <button className="link" onClick={() => setConsent('denied')}>Decline ads</button> · <button className="link" onClick={() => setConsent('granted')}>Allow ads</button></p>
+      <h2>Advertising, analytics and cookies</h2>
+      <p>The public website (for example the guides) may use <b>analytics</b> (Google Analytics) and <b>advertising</b> (Google AdSense and, if enabled, marketing pixels such as the Meta Pixel). None of them load until you opt in, and you can choose each category separately. Ads are requested as non-personalised.</p>
+      <p><b>None of these tools are used inside the child tracking area or on shared report pages, and we never share your child's data, your logs or your account details with advertisers or analytics providers.</b> Website events contain only things like which page was viewed or that a waitlist form was submitted, never names, emails or health data.</p>
+      <p>Your choices: analytics <b>{consent.analytics ? 'allowed' : 'off'}</b>, advertising &amp; marketing <b>{consent.advertising ? 'allowed' : 'off'}</b>.{' '}
+        <button className="link" onClick={() => setConsent(false, false)}>Turn both off</button> · <button className="link" onClick={() => setConsent(true, true)}>Allow both</button></p>
+      <p>If you opened a link with campaign parameters (such as <code>utm_source</code>) and joined the waitlist, we store those parameters with your sign-up to learn which channels work.</p>
+      <h2>Reports and shared links</h2>
+      <p>You can generate a report of your child's log and, if you choose, share it through a private link. Links are unguessable, expire (you choose when, up to 30 days), can be revoked at any time, are not indexed by search engines, and anyone holding the link can view that report until it expires or you revoke it.</p>
       <h2>Your rights</h2>
       <p>You can ask us to export or delete your account and your child's data at any time by emailing us. Deleting a child's profile removes its logs.</p>
       <h2>Security and retention</h2>

@@ -38,10 +38,18 @@ public record CorrelationDto(string Factor, string Message, double ExposedAverag
 public record PredictionDto(DateTime NextLikelyAt, double Confidence, string Model, string? Reason);
 public record PredictionResponse(PredictionDto? Best, List<PredictionDto> Alternatives);
 
-public record ArticleRequest([Required] string Slug, [Required] string Title, string Summary, string Body, bool IsPremium, bool IsPublished);
+public record ArticleRequest([Required, RegularExpression("^[a-z0-9-]{1,80}$")] string Slug, [Required] string Title, string Summary, string Body, bool IsPremium, bool IsPublished,
+    [MaxLength(120)] string? MetaTitle = null, [MaxLength(320)] string? MetaDescription = null, [MaxLength(80)] string? FocusKeyword = null);
 public record PlanOfferRequest(Plan Plan, [Required] string Name, decimal MonthlyPrice, decimal YearlyPrice, string Features, bool IsActive);
 public record UpdateUserRequest(Plan? Plan, bool? IsActive, UserRole? Role);
-public record WaitlistRequest([Required, EmailAddress] string Email, string? Source);
+public record WaitlistRequest([Required, EmailAddress] string Email, [MaxLength(200)] string? Source);
 
 public record DonationCheckoutRequest(long AmountCents);
 public record DonationConfigDto(bool Enabled, string Currency, int[] PresetsCents, int MinCents, int MaxCents);
+
+public record ReportLogRow(string LocalTime, string Type, string Details, string? LoggedBy);
+public record ReportDto(string ChildName, int? AgeMonths, string TimeZone, DateOnly From, DateOnly To, DateTime GeneratedAt,
+    InsightsDto Insights, int[] StoolTypeCounts, List<ReportLogRow>? Logs, string Disclaimer);
+public record ReportLinkRequest(DateOnly From, DateOnly To, bool IncludeLogs = false, int ExpiresInDays = 7);
+public record ReportLinkDto(Guid Id, string Token, string Path, DateOnly From, DateOnly To, bool IncludeLogs, DateTime ExpiresAt);
+public record ReportLinkSummary(Guid Id, DateOnly From, DateOnly To, bool IncludeLogs, DateTime ExpiresAt, DateTime CreatedAt);

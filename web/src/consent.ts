@@ -1,18 +1,25 @@
 import { useSyncExternalStore } from 'react'
 
-export type Consent = 'granted' | 'denied' | 'unset'
-const KEY = 'pt_ad_consent'
+/** Two separate choices, as privacy law expects: measurement (analytics) and advertising/marketing (ads + marketing pixels). */
+export interface Consent { decided: boolean; analytics: boolean; advertising: boolean }
+const KEY = 'pt_consent_v2'
 const listeners = new Set<() => void>()
+const NONE: Consent = { decided: false, analytics: false, advertising: false }
 
 function read(): Consent {
-  try { const v = localStorage.getItem(KEY); return v === 'granted' || v === 'denied' ? v : 'unset' } catch { return 'unset' }
+  try {
+    const v = JSON.parse(localStorage.getItem(KEY) ?? 'null')
+    if (v && typeof v.analytics === 'boolean' && typeof v.advertising === 'boolean') return { decided: true, analytics: v.analytics, advertising: v.advertising }
+  } catch { /* storage unavailable or corrupt: treat as undecided */ }
+  return NONE
 }
 
-export function setConsent(v: 'granted' | 'denied') {
-  try { localStorage.setItem(KEY, v) } catch { /* private mode: the choice just lasts for this page view */ }
-  cached = v
+let current: Consent = read()
+
+export function setConsent(analytics: boolean, advertising: boolean) {
+  current = { decided: true, analytics, advertising }
+  try { localStorage.setItem(KEY, JSON.stringify({ analytics, advertising })) } catch { /* the choice lasts for this page view only */ }
   listeners.forEach(l => l())
 }
 
-let cached: Consent = read()
-export const useConsent = () => useSyncExternalStore(cb => { listeners.add(cb); return () => listeners.delete(cb) }, () => cached)
+export const useConsent = (): Consent => useSyncExternalStore(cb => { listeners.add(cb); return () => listeners.delete(cb) }, () => current)

@@ -25,7 +25,23 @@ Donors pay on Stripe's hosted page. The API stores only the amount and session i
 3. Ads only load after a visitor clicks "Allow ads", and are requested as non-personalised. **Before serving visitors in the EEA/UK you must use a Google-certified consent platform** (Google's free "Privacy & messaging" tool works); the built-in banner is not one.
 4. Keep `VITE_CONTACT_EMAIL` and the wording in `web/src/pages/Privacy.tsx` up to date and have the privacy policy reviewed for your jurisdiction.
 
-The site is a single-page app: configure your host to serve `index.html` for unknown paths.
+The site is a single-page app: configure your host to serve `<path>/index.html` if it exists, otherwise the root `index.html` (nginx: `try_files $uri $uri/index.html /index.html;`; Netlify and Cloudflare Pages do this by default).
+
+### Analytics and marketing pixels (website only)
+`VITE_GA_MEASUREMENT_ID` (Google Analytics 4) and `VITE_META_PIXEL_ID` (Meta Pixel) are optional. Nothing loads until the visitor opts in, in two separate categories: **analytics** (GA4) and **advertising & marketing** (AdSense, Meta Pixel). GA4 starts in denied Consent Mode with IP anonymisation; the Meta Pixel starts with consent revoked. Events: `page_view`, `waitlist_join`, `donate_start`, `donate_thanks`, `guide_view`, with no personal data in any parameter. Waitlist sign-ups also store `utm_source/medium/campaign` so you can see which campaign worked. These tags are deliberately **not** used in the tracking app, on shared report pages, or anywhere a child's data appears. Keep it that way when the mobile app is built, because health-related tracker leaks have led to regulatory action against family and health apps. Check your region's consent rules, as the banner here is not a certified consent platform.
+
+### SEO
+- Every page sets title, description, canonical URL, Open Graph/Twitter tags and JSON-LD (Organization, WebSite, FAQPage, Article, BreadcrumbList) at runtime.
+- `npm run build` in `web/` also runs `scripts/prerender.mjs`: it reads the published guides from `PRERENDER_API_URL`, writes real HTML for each guide (so crawlers do not depend on JavaScript), and generates `sitemap.xml` and `robots.txt`. Set `VITE_SITE_URL` to your domain first. Premium/locked guides are never written to public HTML. Rebuild (or run `npm run build` in CI on a schedule or on publish) after adding guides.
+- The admin article editor has focus keyword, SEO title/description fields, a search-result preview and an on-page checklist (title and description length, 300+ words, subheadings, keyword placement).
+- Submit `sitemap.xml` in Google Search Console and Bing Webmaster Tools after launch.
+
+### Reports
+- `GET /api/children/{id}/report?from=2026-10-01&to=2026-10-07&format=json|html|csv&includeLogs=true`: any caregiver. Dates are the child's local days (max 90 days). HTML is print-friendly ("Save as PDF" from the browser or the app); CSV lists every entry (spreadsheet-formula-safe).
+- Share links, owner only: `POST /api/children/{id}/report-links` (`from`, `to`, `includeLogs`, `expiresInDays` 1-30) returns a token and `/r/{token}`; `GET` lists active links; `DELETE .../report-links/{linkId}` revokes. The public page is unguessable, expiring, revocable, `noindex`, `no-store`, `no-referrer`, and has no scripts, ads or trackers.
+- Native PDF generation is not included; add a PDF library (check its licence terms) if you need server-side PDFs.
+
+## Run locally
 
 ## Run locally
 
