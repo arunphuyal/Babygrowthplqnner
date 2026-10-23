@@ -72,7 +72,7 @@ export function track(name: EventName, params: Record<string, string | number> =
 /** Remembers UTM parameters for the session so a waitlist sign-up can be attributed to its campaign. No cookies involved. */
 export function campaignSuffix(): string {
   try {
-    const key = 'pt_utm'
+    const key = 'bb_utm'
     const q = new URLSearchParams(window.location.search)
     const found = ['utm_source', 'utm_medium', 'utm_campaign'].filter(k => q.get(k)).map(k => `${k}=${q.get(k)!.slice(0, 40)}`)
     if (found.length) sessionStorage.setItem(key, found.join('&'))

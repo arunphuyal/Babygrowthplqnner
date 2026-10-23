@@ -1,0 +1,23 @@
+# /etc/systemd/system/babybunu-api.service   (Linux VPS or cPanel VPS with root access)
+# sudo systemctl daemon-reload && sudo systemctl enable --now babybunu-api
+[Unit]
+Description=API
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/api
+ExecStart=/opt/api/Babybunu.Api
+Restart=always
+RestartSec=5
+User=apiuser
+EnvironmentFile=/etc/babybunu-api.env
+# Listen only on localhost; the reverse proxy (Caddy/Apache) exposes it over HTTPS.
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
+Environment=ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/babybunu
+
+[Install]
+WantedBy=multi-user.target

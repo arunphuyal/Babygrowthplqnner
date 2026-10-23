@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 
 /** Two separate choices, as privacy law expects: measurement (analytics) and advertising/marketing (ads + marketing pixels). */
 export interface Consent { decided: boolean; analytics: boolean; advertising: boolean }
-const KEY = 'pt_consent_v2'
+const KEY = 'bb_consent_v2'
 const listeners = new Set<() => void>()
 const NONE: Consent = { decided: false, analytics: false, advertising: false }
 

@@ -1,6 +1,6 @@
 const API = import.meta.env.VITE_API_URL ?? ''
-const KEY = 'pt_admin_token'
-const REFRESH_KEY = 'pt_admin_refresh'
+const KEY = 'bb_admin_token'
+const REFRESH_KEY = 'bb_admin_refresh'
 
 export const auth = {
   get: () => sessionStorage.getItem(KEY),

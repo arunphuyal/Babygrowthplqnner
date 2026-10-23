@@ -1,4 +1,4 @@
-# PottyTrain – plan, features and market research
+# Babybunu – plan, features and market research
 
 ## Similar services (found via web search, Oct 2026)
 Mostly iOS-first indie apps; I could not verify per-country availability from the listings, so check each store page in your target markets.
@@ -27,7 +27,7 @@ Estimates assume one developer working with an AI pair and are rough; each phase
 
 ### Phase 0 – Company, brand and accounts (start now, runs in parallel)
 Several launch steps depend on a legal entity, so begin early (registration time varies by country).
-- **Brand:** pick a generic name that can grow beyond potty training (the product will become a wider baby and child growth/routine planner). Check the domain, trademark databases, app store names and social handles before committing; avoid names containing "potty". Until then the name is a setting (`VITE_SITE_NAME`, `VITE_APP_NAME`, `App:Name`), so changing it needs no code changes, only a rebuild. Internal code names (`PottyTrain.Api` namespaces) can be renamed later with a mechanical refactor.
+- **Brand (decided): Babybunu.** Still to do: check the domain (and common variants), trademark databases in your target markets, the App Store and Google Play name, and social handles before spending on branding; I cannot verify availability from here. The name is a setting (`VITE_SITE_NAME`, `VITE_APP_NAME`, `App:Name`) and the code, projects and services have been renamed to Babybunu. Potty training is the first module; plan the wider product (growth, sleep, feeding, milestones) as separate "programs" attached to a child when the second one starts.
 - **Company:** register it, open a business bank account, get tax IDs (and VAT/GST if applicable), and get a D-U-N-S number (Apple and Google need one to publish under an organisation account).
 - **Accounts in the company's name:** domain, hosting, Stripe, Google AdSense and Google Search Console/Tag, Apple Developer ($99/yr) and Google Play ($25 once) developer accounts, an email provider, an error-tracking account.
 - **Legal:** privacy policy and terms with the company's name and address (replace the draft text in `web/src/pages/Privacy.tsx`), a cookie/consent tool, a data-processing record, and an accountant's view on how contributions and ad income are taxed. Because the company is not a charity, the app says "support" and "contribution", not "donation", and Stripe's button says "Pay".

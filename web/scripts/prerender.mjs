@@ -8,7 +8,7 @@ import path from 'node:path'
 const DIST = path.resolve('dist')
 const SITE = (process.env.VITE_SITE_URL || 'https://example.com').replace(/\/$/, '')
 const API = (process.env.PRERENDER_API_URL || 'http://localhost:5080').replace(/\/$/, '')
-const NAME = process.env.VITE_SITE_NAME || 'PottyTrain'
+const NAME = process.env.VITE_SITE_NAME || 'Babybunu'
 const DESCRIPTION = "Free potty training tracker for parents: log wees, poos, accidents, drinks and food, spot your toddler's patterns and get a calm, clear plan."
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')

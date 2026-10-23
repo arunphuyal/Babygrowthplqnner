@@ -32,15 +32,15 @@ The admin `.htaccess` also sends `noindex` and blocks framing. For extra safety 
 ## 3. The API on a Linux VPS (option A)
 ```bash
 # once, as root: create a user and folders
-useradd -r -m apiuser; mkdir -p /opt/api /var/lib/pottytrain; chown apiuser /var/lib/pottytrain
-unzip api-linux.zip -d /opt/api; chmod +x /opt/api/PottyTrain.Api
-cp deploy/api.env.example /etc/pottytrain-api.env   # edit it; chmod 600
-cp deploy/pottytrain-api.service /etc/systemd/system/
-systemctl daemon-reload && systemctl enable --now pottytrain-api
+useradd -r -m apiuser; mkdir -p /opt/api /var/lib/babybunu; chown apiuser /var/lib/babybunu
+unzip api-linux.zip -d /opt/api; chmod +x /opt/api/Babybunu.Api
+cp deploy/api.env.example /etc/babybunu-api.env   # edit it; chmod 600
+cp deploy/babybunu-api.service /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now babybunu-api
 # HTTPS reverse proxy (Caddy): put deploy/Caddyfile.example in /etc/caddy/Caddyfile, then: systemctl reload caddy
 curl https://api.yourdomain.com/health        # {"status":"ok"}
 ```
-The first start applies the database migrations and creates the admin account from `Seed__AdminEmail` / `Seed__AdminPassword`. Generate `Jwt__Key` with `openssl rand -base64 48`; rotating it signs everyone out. **Updating:** upload the new zip, replace the files in `/opt/api` (keep the database folder), `systemctl restart pottytrain-api`.
+The first start applies the database migrations and creates the admin account from `Seed__AdminEmail` / `Seed__AdminPassword`. Generate `Jwt__Key` with `openssl rand -base64 48`; rotating it signs everyone out. **Updating:** upload the new zip, replace the files in `/opt/api` (keep the database folder), `systemctl restart babybunu-api`.
 
 **Database:** SQLite is fine for the early stage on one server. Back it up daily with `deploy/backup-sqlite.sh` and copy backups **off the server**; test a restore. When traffic or reliability needs grow, move to PostgreSQL or MySQL (needs a different EF provider and regenerated migrations; cPanel's MySQL is not usable by the API today).
 

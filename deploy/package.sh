@@ -16,7 +16,7 @@ OUT="$ROOT/deploy/out"
 rm -rf "$OUT" && mkdir -p "$OUT"
 
 export VITE_SITE_URL="$SITE_URL" VITE_API_URL="$API_URL"
-export VITE_SITE_NAME="${SITE_NAME:-PottyTrain}" VITE_APP_NAME="${SITE_NAME:-PottyTrain}"
+export VITE_SITE_NAME="${SITE_NAME:-Babybunu}" VITE_APP_NAME="${SITE_NAME:-Babybunu}"
 export VITE_CONTACT_EMAIL="${CONTACT_EMAIL:-hello@example.com}"
 export VITE_GOOGLE_TAG_ID="${GOOGLE_TAG_ID:-}" VITE_ADSENSE_CLIENT="${ADSENSE_CLIENT:-}" VITE_ADSENSE_SLOT="${ADSENSE_SLOT:-}" VITE_META_PIXEL_ID="${META_PIXEL_ID:-}"
 export PRERENDER_API_URL="${PRERENDER_API_URL:-$API_URL}"
@@ -33,7 +33,7 @@ if [ "${SKIP_API:-0}" != "1" ]; then
   for rid in linux-x64 win-x64; do
     name=$([ "$rid" = linux-x64 ] && echo linux || echo windows)
     echo "==> API ($rid)"
-    dotnet publish "$ROOT/backend/PottyTrain.Api" -c Release -r "$rid" --self-contained true -o "$OUT/api-$name" --nologo -v q
+    dotnet publish "$ROOT/backend/Babybunu.Api" -c Release -r "$rid" --self-contained true -o "$OUT/api-$name" --nologo -v q
     rm -f "$OUT/api-$name"/*.pdb "$OUT/api-$name"/appsettings.Development.json "$OUT"/api-$name/*.db*
     (cd "$OUT/api-$name" && zip -qr "$OUT/api-$name.zip" .)
     rm -rf "$OUT/api-$name"

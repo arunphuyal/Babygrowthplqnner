@@ -1,16 +1,16 @@
-# PottyTrain
+# Babybunu
 
-Potty-training tracker for parents (think "Flo", but for toddlers). This repo holds the backend API, the admin portal and the public landing page. The mobile app comes later and will consume the same API.
+Baby and toddler tracking for parents, starting with potty training (think "Flo", but for toddlers). This repo holds the backend API, the admin portal and the public landing page. The mobile app comes later and will consume the same API.
 
 | Folder | What | Stack |
 |---|---|---|
-| `backend/PottyTrain.Api` | REST API | ASP.NET Core 8, EF Core (SQLite), JWT auth, Swagger |
+| `backend/Babybunu.Api` | REST API | ASP.NET Core 8, EF Core (SQLite), JWT auth, Swagger |
 | `admin/` | Admin portal (users, content, plans, waitlist, stats) | React + TypeScript + Vite |
 | `web/` | Public landing page + waitlist | React + TypeScript + Vite |
 | `docs/PLAN.md` | Roadmap, monetisation, competitor research | |
 
 ## Business model (for now)
-PottyTrain is **free for everyone**. It is funded by (1) one-off **Stripe donations** and (2) **Google AdSense on the public website only** (the guides pages), never inside the tracking app. `Features:AllFree` (default `true`) switches the paywall off; set it to `false` to enforce Free/Premium/Family again (the plan code, RevenueCat webhook and admin plan tools are still in place). Sign-in is by email and password, with password reset by email.
+Babybunu is **free for everyone**. It is funded by (1) one-off **Stripe donations** and (2) **Google AdSense on the public website only** (the guides pages), never inside the tracking app. `Features:AllFree` (default `true`) switches the paywall off; set it to `false` to enforce Free/Premium/Family again (the plan code, RevenueCat webhook and admin plan tools are still in place). Sign-in is by email and password, with password reset by email.
 
 ### Stripe donations
 1. Create a Stripe account. Set `Donations__StripeSecretKey` and `Donations__StripeWebhookSecret` as environment variables. Never commit keys.
@@ -45,7 +45,7 @@ The site is a single-page app: configure your host to serve `<path>/index.html` 
 Self-hosted on cPanel. See **`docs/HOSTING.md`** (what runs where, step-by-step cPanel upload, API on a VPS, email, Stripe, go-live checklist) and `deploy/package.sh` (one command builds the upload zips).
 
 ## Branding and language
-The product name is a setting, not code: `VITE_SITE_NAME` (website), `VITE_APP_NAME` (admin), `App__Name` (API emails and the Stripe product name). English (`en`) is the default; accounts and guides carry a language code (`/api/articles?lang=fr`), so translated guides can live beside English ones with the same slug.
+The product name (**Babybunu**) is a setting, not hard-coded: `VITE_SITE_NAME` (website), `VITE_APP_NAME` (admin), `App__Name` (API emails and the Stripe product name). English (`en`) is the default; accounts and guides carry a language code (`/api/articles?lang=fr`), so translated guides can live beside English ones with the same slug.
 
 ## Run locally
 
@@ -53,7 +53,7 @@ The product name is a setting, not code: `VITE_SITE_NAME` (website), `VITE_APP_N
 
 ```bash
 # 1. API  -> http://localhost:5080  (Swagger at /swagger)
-cd backend/PottyTrain.Api
+cd backend/Babybunu.Api
 ASPNETCORE_ENVIRONMENT=Development ASPNETCORE_URLS=http://localhost:5080 dotnet run --no-launch-profile
 
 # 2. Landing page -> http://localhost:5173
@@ -63,15 +63,15 @@ cd web && npm install && npm run dev
 cd admin && npm install && npm run dev
 ```
 
-Dev admin login: `admin@pottytrain.local` / `Admin123!dev` (from `appsettings.Development.json`).
+Dev admin login: `admin@babybunu.local` / `Admin123!dev` (from `appsettings.Development.json`).
 
 ### Production configuration
 - Required: `Jwt__Key` (>= 32 chars). Admin seed: `Seed__AdminEmail`, `Seed__AdminPassword` (if empty, a random password is logged once on first start).
 - `Cors__Origins__0=https://yourdomain`; `ConnectionStrings__Default`; `VITE_API_URL` when building `web/` and `admin/` against a different origin.
 - Email (password reset): `Email__SmtpHost`, `Email__SmtpPort`, `Email__User`, `Email__Password`, `Email__From`, and `App__ResetUrl` (the page in your app that accepts `?token=`). Without `SmtpHost`, emails are only logged.
-- Billing: create a RevenueCat webhook pointing at `/api/billing/webhook/revenuecat` with Authorization header `Bearer <secret>`, set `Billing__RevenueCatWebhookSecret` to `<secret>` (empty = webhook disabled), map store products to plans in `Billing:ProductPlans`, and set the RevenueCat App User ID to the PottyTrain user id. This is implemented from RevenueCat's documented payload and tested with sample events only; try it with RevenueCat's test events before launch.
+- Billing: create a RevenueCat webhook pointing at `/api/billing/webhook/revenuecat` with Authorization header `Bearer <secret>`, set `Billing__RevenueCatWebhookSecret` to `<secret>` (empty = webhook disabled), map store products to plans in `Billing:ProductPlans`, and set the RevenueCat App User ID to the Babybunu user id. This is implemented from RevenueCat's documented payload and tested with sample events only; try it with RevenueCat's test events before launch.
 - Behind a reverse proxy set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` so rate limiting sees real client IPs.
-- SQLite is the default. Schema changes use EF migrations (applied automatically on start): `dotnet ef migrations add <Name> -o Data/Migrations` from `backend/PottyTrain.Api`. To use PostgreSQL/SQL Server, swap the provider in `Program.cs` and regenerate the migrations.
+- SQLite is the default. Schema changes use EF migrations (applied automatically on start): `dotnet ef migrations add <Name> -o Data/Migrations` from `backend/Babybunu.Api`. To use PostgreSQL/SQL Server, swap the provider in `Program.cs` and regenerate the migrations.
 
 ## API overview (for the future mobile app)
 

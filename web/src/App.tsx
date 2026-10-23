@@ -23,7 +23,7 @@ export default function App() {
   return (
     <>
       <header className="nav">
-        <Link className="brand" to="/">🌱 {SITE.name}</Link>
+        <Link className="brand" to="/">🐰 {SITE.name}</Link>
         <nav>
           <Link to="/guides">Guides</Link>
           <a href="/#features">Features</a>

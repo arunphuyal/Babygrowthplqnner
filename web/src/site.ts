@@ -1,7 +1,7 @@
 // Edit these before launch. They appear on the privacy page, in the footer and in search-engine metadata.
 export const SITE = {
   // Working name; set VITE_SITE_NAME to the final brand and every page, title and email-facing text follows.
-  name: (import.meta.env.VITE_SITE_NAME ?? 'PottyTrain') as string,
+  name: (import.meta.env.VITE_SITE_NAME ?? 'Babybunu') as string,
   url: ((import.meta.env.VITE_SITE_URL ?? 'https://example.com') as string).replace(/\/$/, ''),
   contactEmail: import.meta.env.VITE_CONTACT_EMAIL ?? 'hello@example.com',
   description: 'Free potty training tracker for parents: log wees, poos, accidents, drinks and food, spot your toddler\'s patterns and get a calm, clear plan.',
