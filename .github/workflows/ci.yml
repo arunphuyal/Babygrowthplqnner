@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Also build the upload zips (needs the SITE_URL and API_URL repository variables)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore backend/Babybunu.sln
+      - name: Build
+        run: dotnet build backend/Babybunu.sln --no-restore -c Release
+      - name: Test
+        run: dotnet test backend/Babybunu.sln --no-build -c Release --logger "trx;LogFileName=test-results.trx"
+      - name: Migrations match the model
+        run: |
+          dotnet tool install --global dotnet-ef --version "8.*"
+          cd backend/Babybunu.Api && dotnet ef migrations has-pending-model-changes
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: backend/**/TestResults/*.trx
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run build   # type-checks, builds, and prerenders the static pages (guides need the API, skipped here)
+        working-directory: web
+        env:
+          VITE_SITE_URL: https://example.com
+
+  admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - run: npm ci
+        working-directory: admin
+      - run: npm run build
+        working-directory: admin
+
+  package:
+    if: github.event_name == 'workflow_dispatch' && inputs.package
+    needs: [backend, web, admin]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build upload packages
+        run: ./deploy/package.sh
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          API_URL: ${{ vars.API_URL }}
+          SITE_NAME: ${{ vars.SITE_NAME || 'Babybunu' }}
+          CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+          GOOGLE_TAG_ID: ${{ vars.GOOGLE_TAG_ID }}
+          ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
+          ADSENSE_SLOT: ${{ vars.ADSENSE_SLOT }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upload-packages
+          path: deploy/out/*.zip
+          retention-days: 14

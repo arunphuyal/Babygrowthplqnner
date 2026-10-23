@@ -30,21 +30,26 @@ Output in `deploy/out/`: `web.zip`, `admin.zip`, `api-linux.zip`, `api-windows.z
 The admin `.htaccess` also sends `noindex` and blocks framing. For extra safety restrict the admin subdomain by IP in cPanel > **IP Blocker** or add `Require ip` rules if you have a fixed address.
 
 ## 3. The API on a Linux VPS (option A)
+You need a fresh Ubuntu 22.04/24.04 server, SSH access as root (or a sudo user), and a DNS **A record** `api.yourdomain.com` pointing at its IP (Caddy needs this to obtain the HTTPS certificate).
 ```bash
-# once, as root: create a user and folders
-useradd -r -m apiuser; mkdir -p /opt/api /var/lib/babybunu; chown apiuser /var/lib/babybunu
-unzip api-linux.zip -d /opt/api; chmod +x /opt/api/Babybunu.Api
-cp deploy/api.env.example /etc/babybunu-api.env   # edit it; chmod 600
-cp deploy/babybunu-api.service /etc/systemd/system/
-systemctl daemon-reload && systemctl enable --now babybunu-api
-# HTTPS reverse proxy (Caddy): put deploy/Caddyfile.example in /etc/caddy/Caddyfile, then: systemctl reload caddy
-curl https://api.yourdomain.com/health        # {"status":"ok"}
+# 1. copy the deploy folder up and run the one-time setup (installs Caddy, creates the service user, firewall, nightly backup)
+scp -r deploy root@api.yourdomain.com:/root/
+ssh root@api.yourdomain.com 'cd /root/deploy && ./bootstrap-vps.sh api.yourdomain.com you@yourdomain.com'
+#    -> prints the first admin login once. Then edit /etc/babybunu-api.env (domains, email, Stripe) and restart the service.
+
+# 2. every release: from your computer
+SITE_URL=https://yourdomain.com API_URL=https://api.yourdomain.com ./deploy/package.sh
+./deploy/deploy-vps.sh root@api.yourdomain.com deploy/out/api-linux.zip
 ```
-The first start applies the database migrations and creates the admin account from `Seed__AdminEmail` / `Seed__AdminPassword`. Generate `Jwt__Key` with `openssl rand -base64 48`; rotating it signs everyone out. **Updating:** upload the new zip, replace the files in `/opt/api` (keep the database folder), `systemctl restart babybunu-api`.
+`deploy-vps.sh` uploads the zip, switches the `current` symlink to the new release, restarts the service and waits for `/health`. **If the health check fails it switches back to the previous release automatically** (the five most recent releases are kept). The first start applies the database migrations and creates the admin account from `Seed__AdminEmail` / `Seed__AdminPassword`. Generate a new `Jwt__Key` with `openssl rand -base64 48`; rotating it signs everyone out.
 
-**Database:** SQLite is fine for the early stage on one server. Back it up daily with `deploy/backup-sqlite.sh` and copy backups **off the server**; test a restore. When traffic or reliability needs grow, move to PostgreSQL or MySQL (needs a different EF provider and regenerated migrations; cPanel's MySQL is not usable by the API today).
+**Database:** SQLite (`/var/lib/babybunu/app.db`) is fine for the early stage on one server. A consistent copy is made nightly into `/var/backups/babybunu` (14 days kept). **Copy that folder off the server** (rsync or rclone to object storage) and test a restore: `systemctl stop babybunu-api; cp app-YYYY-MM-DD.db /var/lib/babybunu/app.db; chown babybunu: /var/lib/babybunu/app.db; systemctl start babybunu-api`. When traffic or reliability needs grow, move to PostgreSQL or MySQL (needs a different EF provider and regenerated migrations; cPanel's MySQL is not usable by the API today).
 
-**Firewall:** allow only 80/443 and SSH; the API listens on `127.0.0.1:5000`.
+**Firewall:** only SSH, 80 and 443 are open; the API itself listens on `127.0.0.1:5000`. Logs: `journalctl -u babybunu-api -f`.
+
+**On an ASP.NET-capable host instead (option C):** upload `api-windows.zip` (it has `web.config`) and set the same settings as environment variables in `web.config` or the host panel. Make the folder holding the SQLite file writable by the app pool identity.
+
+**CI:** `.github/workflows/ci.yml` builds and tests everything on every push and checks that the EF migrations match the model. Run it manually with "package" ticked (and the repository variables `SITE_URL`, `API_URL`, optionally `SITE_NAME`, `CONTACT_EMAIL`, `GOOGLE_TAG_ID`, `ADSENSE_CLIENT`, `ADSENSE_SLOT`) to get the upload zips as a downloadable artifact.
 
 ## 4. Email (password reset)
 Create a mailbox such as `no-reply@yourdomain.com` in cPanel > **Email Accounts**, then set `Email__SmtpHost=mail.yourdomain.com`, port `587` (STARTTLS), user, password and `Email__From`. Use port 587; the built-in client does not support implicit-TLS port 465. In cPanel > **Email Deliverability** make sure SPF and DKIM are valid, otherwise reset emails go to spam. Shared-host IPs have sending limits; for anything beyond a trickle use a transactional email service.
@@ -55,6 +60,7 @@ Create a mailbox such as `no-reply@yourdomain.com` in cPanel > **Email Accounts*
 - Shared report links are served by the API at `https://api.yourdomain.com/r/<token>`.
 
 ## 6. Checklist before going live
+- [ ] `App__ResetUrl` and `App__VerifyUrl` point at your website (`/reset-password`, `/verify-email` pages exist)
 - [ ] `Jwt__Key` set, seeded admin password changed to a long passphrase, no dev credentials
 - [ ] AutoSSL green on all three hostnames, HTTP redirects to HTTPS
 - [ ] `Cors__Origins__*` lists only your real domains

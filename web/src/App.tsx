@@ -9,6 +9,7 @@ import { ConsentBanner } from './components/Ads'
 import Home from './pages/Home'
 import Privacy from './pages/Privacy'
 import { GuideList, GuidePage } from './pages/Guides'
+import { VerifyEmail, ResetPassword } from './pages/AccountLinks'
 
 function NotFound() {
   useSeo({ title: `Page not found – ${SITE.name}`, path: '/404', noindex: true })
@@ -37,6 +38,8 @@ export default function App() {
           <Route path="/guides" element={<GuideList />} />
           <Route path="/guides/:slug" element={<GuidePage />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

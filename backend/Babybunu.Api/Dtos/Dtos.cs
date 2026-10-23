@@ -8,20 +8,24 @@ public record RegisterRequest([Required, EmailAddress] string Email, [Required, 
 public record LoginRequest([Required] string Email, [Required] string Password);
 public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken, UserDto User);
 public record RefreshRequest([Required] string RefreshToken);
+public record VerifyEmailRequest([Required] string Token);
+public record DeleteAccountRequest([Required] string Password);
 public record ForgotPasswordRequest([Required, EmailAddress] string Email);
 public record ResetPasswordRequest([Required] string Token, [Required, MinLength(8)] string NewPassword);
 public record InviteRequest(bool CanEdit = true);
 public record InviteResponse(string Code, DateTime ExpiresAt, bool CanEdit);
 public record AcceptInviteRequest([Required] string Code);
 public record CaregiverDto(Guid UserId, string DisplayName, string Email, bool CanEdit);
-public record UserDto(Guid Id, string Email, string DisplayName, UserRole Role, Plan Plan, DateTime? PlanExpiresAt, bool IsActive, DateTime CreatedAt, DateTime? LastLoginAt, string Language = "en");
+public record UserDto(Guid Id, string Email, string DisplayName, UserRole Role, Plan Plan, DateTime? PlanExpiresAt, bool IsActive, DateTime CreatedAt, DateTime? LastLoginAt, string Language = "en", bool EmailVerified = false);
 
 public record ChildRequest([Required, MaxLength(100)] string Name, DateOnly BirthDate, DateOnly? TrainingStartDate, string? Notes, string? TimeZoneId = null);
 public record ChildDto(Guid Id, string Name, DateOnly BirthDate, DateOnly? TrainingStartDate, string? Notes, string TimeZoneId, bool IsOwner, bool CanEdit);
 
 public record LogRequest(
     LogType Type, DateTime? OccurredAt, bool? InPotty, int? Amount, string? Notes,
-    LogSize? Size = null, int? StoolType = null, OutputColour? Colour = null, string? Category = null, string[]? Tags = null);
+    LogSize? Size = null, int? StoolType = null, OutputColour? Colour = null, string? Category = null, string[]? Tags = null,
+    /// <summary>Optional client-generated id. Re-sending the same id (e.g. an offline retry) returns the existing log instead of creating a duplicate.</summary>
+    Guid? Id = null);
 public record LogDto(
     Guid Id, Guid ChildId, LogType Type, DateTime OccurredAt, bool? InPotty, int? Amount, string? Notes,
     LogSize? Size, int? StoolType, OutputColour? Colour, string? Category, string[] Tags, string? LoggedBy = null);

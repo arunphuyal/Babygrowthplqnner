@@ -34,6 +34,8 @@ public class User
     /// <summary>When a paid plan lapses (set by billing webhooks). Null = no expiry (e.g. granted by an admin).</summary>
     public DateTime? PlanExpiresAt { get; set; }
     public bool IsActive { get; set; } = true;
+    /// <summary>When the address was confirmed (by the verification link, or by completing a password reset). Null = not yet verified.</summary>
+    public DateTime? EmailVerifiedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }
     public List<Child> Children { get; set; } = new();
@@ -151,6 +153,15 @@ public class RefreshToken
     public DateTime ExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? RevokedAt { get; set; }
+}
+
+public class EmailVerificationToken
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid UserId { get; set; }
+    public string TokenHash { get; set; } = "";
+    public DateTime ExpiresAt { get; set; }
+    public DateTime? UsedAt { get; set; }
 }
 
 public class PasswordResetToken

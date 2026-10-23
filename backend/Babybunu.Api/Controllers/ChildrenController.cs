@@ -137,16 +137,29 @@ public class ChildrenController(AppDb db, PredictionService predictions, Entitle
         if (await Find(id) is not { } a) return NotFound();
         if (!a.CanEdit) return StatusCode(403, new { error = "You have view-only access to this child." });
         if (ValidateLog(req, out var tags) is { } error) return BadRequest(new { error });
+        var me = new Dictionary<Guid, string> { [UserId] = (await db.Users.FindAsync(UserId))!.DisplayName };
+
+        // Offline clients send their own id so a retried request cannot create a duplicate.
+        if (req.Id is { } clientId && await db.Logs.FindAsync(clientId) is { } existing)
+            return existing.ChildId == id && existing.LoggedByUserId == UserId ? Ok(ToDto(existing, me)) : Conflict(new { error = "This id is already used by another entry." });
+
         var log = new LogEntry
         {
-            ChildId = id, Type = req.Type, OccurredAt = (req.OccurredAt ?? DateTime.UtcNow).ToUniversalTime(),
+            Id = req.Id ?? Guid.NewGuid(), ChildId = id, Type = req.Type, OccurredAt = (req.OccurredAt ?? DateTime.UtcNow).ToUniversalTime(),
             InPotty = req.InPotty, Amount = req.Amount, Notes = req.Notes, LoggedByUserId = UserId,
             Size = req.Size, StoolType = req.StoolType, Colour = req.Colour, Category = req.Category?.Trim(), Tags = tags
         };
         db.Logs.Add(log);
-        await db.SaveChangesAsync();
-        var name = (await db.Users.FindAsync(UserId))!.DisplayName;
-        return Created($"api/children/{id}/logs/{log.Id}", ToDto(log, new() { [UserId] = name }));
+        try { await db.SaveChangesAsync(); }
+        catch (DbUpdateException) when (req.Id is not null)
+        {
+            // An identical retry may have inserted the same id between our check and our insert.
+            db.ChangeTracker.Clear();
+            var winner = await db.Logs.AsNoTracking().FirstOrDefaultAsync(l => l.Id == req.Id && l.ChildId == id && l.LoggedByUserId == UserId);
+            if (winner is null) throw;
+            return Ok(ToDto(winner, me));
+        }
+        return Created($"api/children/{id}/logs/{log.Id}", ToDto(log, me));
     }
 
     [HttpDelete("{id:guid}/logs/{logId:guid}")]

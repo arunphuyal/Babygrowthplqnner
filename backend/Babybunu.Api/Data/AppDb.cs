@@ -17,6 +17,7 @@ public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<ChildInvite> Invites => Set<ChildInvite>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -42,6 +43,7 @@ public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
         b.Entity<RefreshToken>().HasIndex(t => t.TokenHash).IsUnique();
         b.Entity<RefreshToken>().HasIndex(t => t.UserId);
         b.Entity<PasswordResetToken>().HasIndex(t => t.TokenHash).IsUnique();
+        b.Entity<EmailVerificationToken>().HasIndex(t => t.TokenHash).IsUnique();
         b.Entity<Article>().HasIndex(a => new { a.Language, a.Slug }).IsUnique(); // the same slug can exist once per language
         b.Entity<Article>().Property(a => a.Language).HasMaxLength(10).HasDefaultValue("en");
         b.Entity<User>().Property(u => u.Language).HasMaxLength(10).HasDefaultValue("en");

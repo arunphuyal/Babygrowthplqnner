@@ -7,6 +7,7 @@ using Babybunu.Api.Data;
 using Babybunu.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 1_048_576); // the largest legitimate body is a Stripe webhook or a log entry
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
@@ -73,6 +74,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+if (!app.Environment.IsDevelopment()) app.UseHsts();
+app.Use(async (ctx, next) =>
+{
+    // Defaults for every response; individual endpoints (e.g. shared report pages) may tighten or override them.
+    ctx.Response.OnStarting(() =>
+    {
+        var h = ctx.Response.Headers;
+        h.TryAdd("X-Content-Type-Options", "nosniff");
+        h.TryAdd("Referrer-Policy", "no-referrer");
+        h.TryAdd("X-Frame-Options", "DENY");
+        return Task.CompletedTask;
+    });
+    await next();
+});
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();

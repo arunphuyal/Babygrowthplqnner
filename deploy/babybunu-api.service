@@ -1,22 +1,24 @@
-# /etc/systemd/system/babybunu-api.service   (Linux VPS or cPanel VPS with root access)
-# sudo systemctl daemon-reload && sudo systemctl enable --now babybunu-api
+# /etc/systemd/system/babybunu-api.service   (installed by deploy/bootstrap-vps.sh)
 [Unit]
-Description=API
+Description=Babybunu API
 After=network.target
 
 [Service]
-WorkingDirectory=/opt/api
-ExecStart=/opt/api/Babybunu.Api
+# "current" is a symlink to the active release, so deploy-vps.sh can switch versions and roll back instantly.
+WorkingDirectory=/opt/babybunu/current
+ExecStart=/opt/babybunu/current/Babybunu.Api
 Restart=always
 RestartSec=5
-User=apiuser
+User=babybunu
 EnvironmentFile=/etc/babybunu-api.env
-# Listen only on localhost; the reverse proxy (Caddy/Apache) exposes it over HTTPS.
 Environment=ASPNETCORE_ENVIRONMENT=Production
+# Listen only on localhost; Caddy exposes it over HTTPS.
 Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
 Environment=ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
 NoNewPrivileges=true
+PrivateTmp=true
 ProtectSystem=full
+ProtectHome=true
 ReadWritePaths=/var/lib/babybunu
 
 [Install]

@@ -19,7 +19,7 @@ public static class Seeder
                 password = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(12));
                 logger.LogWarning("Seeded admin {Email} with generated password: {Password} (set Seed:AdminPassword to choose your own)", adminEmail, password);
             }
-            db.Users.Add(new User { Email = adminEmail.ToLowerInvariant(), DisplayName = "Admin", Role = UserRole.Admin, Plan = Plan.Family, PasswordHash = pw.Hash(password) });
+            db.Users.Add(new User { Email = adminEmail.ToLowerInvariant(), DisplayName = "Admin", Role = UserRole.Admin, Plan = Plan.Family, EmailVerifiedAt = DateTime.UtcNow, PasswordHash = pw.Hash(password) });
         }
 
         if (!await db.PlanOffers.AnyAsync())

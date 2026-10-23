@@ -42,7 +42,7 @@ The site is a single-page app: configure your host to serve `<path>/index.html` 
 - Native PDF generation is not included; add a PDF library (check its licence terms) if you need server-side PDFs.
 
 ## Hosting
-Self-hosted on cPanel. See **`docs/HOSTING.md`** (what runs where, step-by-step cPanel upload, API on a VPS, email, Stripe, go-live checklist) and `deploy/package.sh` (one command builds the upload zips).
+Self-hosted: static site and admin on cPanel, API on an ASP.NET-capable host or a small VPS. See **`docs/HOSTING.md`** (what runs where, step-by-step cPanel upload, API on a VPS, email, Stripe, go-live checklist) and `deploy/package.sh` (one command builds the upload zips), `deploy/bootstrap-vps.sh` + `deploy/deploy-vps.sh` (VPS setup and deploys with automatic rollback) and `.github/workflows/ci.yml`.
 
 ## Branding and language
 The product name (**Babybunu**) is a setting, not hard-coded: `VITE_SITE_NAME` (website), `VITE_APP_NAME` (admin), `App__Name` (API emails and the Stripe product name). English (`en`) is the default; accounts and guides carry a language code (`/api/articles?lang=fr`), so translated guides can live beside English ones with the same slug.
@@ -75,12 +75,12 @@ Dev admin login: `admin@babybunu.local` / `Admin123!dev` (from `appsettings.Deve
 
 ## API overview (for the future mobile app)
 
-Auth: `POST /api/auth/register`, `/login` return a short-lived (30 min) JWT plus a single-use **refresh token**; `POST /api/auth/refresh` rotates it (replaying an old one signs the user out everywhere), `/logout` revokes it. `POST /api/auth/forgot-password` (always 200) and `/reset-password` handle resets; a reset signs out all sessions. Credential endpoints are rate limited per IP (`RateLimit:AuthPerMinute`, default 10).
+Auth: `POST /api/auth/register`, `/login` return a short-lived (30 min) JWT plus a single-use **refresh token**; `POST /api/auth/refresh` rotates it (replaying an old one signs the user out everywhere), `/logout` revokes it. `POST /api/auth/forgot-password` (always 200) and `/reset-password` handle resets; `POST /api/auth/verify-email` confirms an address (a link is emailed at sign-up; it does not block use) and `/resend-verification` sends a new one; `GET /api/auth/me/export` downloads all of a user's data as JSON and `DELETE /api/auth/me` (with the password) permanently deletes the account and everything it owns (both are store and GDPR requirements); a reset signs out all sessions. Credential endpoints are rate limited per IP (`RateLimit:AuthPerMinute`, default 10).
 
 | Endpoint | Purpose |
 |---|---|
 | `GET/POST /api/children`, `GET/PUT/DELETE /api/children/{id}` | Child profiles (Free plan: 1 child, else `402`) |
-| `GET/POST /api/children/{id}/logs`, `DELETE .../logs/{logId}` | Log `Pee, Poop, Accident, Sit, Fluid, Food, Reward, Note`. Common: `occurredAt`, `inPotty`, `notes`. Intake/output detail: `amount` (ml; Fluid/Pee), `size` (`Tiny/Small/Medium/Large`; Pee/Poop/Fluid/Food), `stoolType` (Bristol 1-7; Poop), `colour` (Pee/Poop), `category` and `tags` (Fluid/Food). Inconsistent combinations return `400`. |
+| `GET/POST /api/children/{id}/logs`, `DELETE .../logs/{logId}` | Log `Pee, Poop, Accident, Sit, Fluid, Food, Reward, Note`. Common: `occurredAt`, `inPotty`, `notes`, and an optional client-generated `id` so an offline retry returns the existing entry (`200`) instead of creating a duplicate. Intake/output detail: `amount` (ml; Fluid/Pee), `size` (`Tiny/Small/Medium/Large`; Pee/Poop/Fluid/Food), `stoolType` (Bristol 1-7; Poop), `colour` (Pee/Poop), `category` and `tags` (Fluid/Food). Inconsistent combinations return `400`. |
 | `GET /api/children/{id}/insights?days=7` | (Free: max 7 days; Premium/Family: up to 90 days and food/fluid-to-stool correlations.) Days and hours use the child's `timeZoneId` (IANA). Success rate, dry streak, hourly histogram, daily series, **daily intake/output balance**, **drink-to-wee lag**, avg wee/stool intervals, non-diagnostic **notes** (no stool for 3+ days, hard stools, unusual colour, fewer wees than usual) |
 | `GET /api/children/{id}/prediction` | Next likely potty visit: best model plus alternatives, each with confidence and reason |
 | `POST /api/children/{id}/invites`, `POST /api/invites/accept`, `GET /api/children/{id}/caregivers`, `DELETE .../caregivers/{userId}` | Share a child with caregivers (owner needs the **Family** plan; invites are single-use, 7 days, view-only or can-edit). Logs record who logged them (`loggedBy`). |
