@@ -37,8 +37,9 @@ public class PublicController(AppDb db) : ApiBase
     {
         var a = await db.Articles.FirstOrDefaultAsync(x => x.Slug == slug && x.IsPublished);
         if (a is null) return NotFound();
-        var plan = User.FindFirstValue("plan");
-        var unlocked = !a.IsPremium || (User.Identity?.IsAuthenticated == true && plan is "Premium" or "Family");
+        var unlocked = !a.IsPremium;
+        if (!unlocked && User.Identity?.IsAuthenticated == true)
+            unlocked = (await db.Users.FindAsync(UserId))?.EffectivePlan is Plan.Premium or Plan.Family;
         return Ok(new { a.Slug, a.Title, a.Summary, a.IsPremium, Body = unlocked ? a.Body : null, Locked = !unlocked });
     }
 }

@@ -30,6 +30,10 @@ public class AdminController(AppDb db) : ApiBase
             estimatedMrr = mrr,
             totalChildren = await db.Children.CountAsync(),
             logsLast7Days = await db.Logs.CountAsync(l => l.OccurredAt >= now.AddDays(-7)),
+            activeChildren7d = await db.Logs.Where(l => l.OccurredAt >= now.AddDays(-7)).Select(l => l.ChildId).Distinct().CountAsync(),
+            sharedChildren = await db.Caregivers.Select(c => c.ChildId).Distinct().CountAsync(),
+            logsByType30d = (await db.Logs.Where(l => l.OccurredAt >= now.AddDays(-30)).GroupBy(l => l.Type)
+                .Select(g => new { type = g.Key, count = g.Count() }).ToListAsync()).Select(x => new { type = x.type.ToString(), x.count }),
             waitlist = await db.Waitlist.CountAsync(),
             signupsLast30Days = signups.OrderBy(s => s.date)
         });
@@ -53,7 +57,7 @@ public class AdminController(AppDb db) : ApiBase
         if (u is null) return NotFound();
         if (id == UserId && (req.IsActive == false || req.Role is { } r && r != UserRole.Admin))
             return BadRequest(new { error = "You cannot demote or deactivate yourself" });
-        if (req.Plan is { } p) u.Plan = p;
+        if (req.Plan is { } p) { u.Plan = p; u.PlanExpiresAt = null; } // admin grants do not expire
         if (req.IsActive is { } a) u.IsActive = a;
         if (req.Role is { } role) u.Role = role;
         await db.SaveChangesAsync();

@@ -5,8 +5,22 @@ namespace PottyTrain.Api.Services;
 
 public static class InsightsCalculator
 {
-    public static InsightsDto Compute(IReadOnlyList<LogEntry> logs, int days, DateTime now, Prediction? prediction = null)
+    public static DateTime Local(DateTime utc, TimeZoneInfo tz) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), tz);
+
+    public static TimeZoneInfo ResolveZone(string? id)
     {
+        try { return string.IsNullOrEmpty(id) ? TimeZoneInfo.Utc : TimeZoneInfo.FindSystemTimeZoneById(id); }
+        catch (TimeZoneNotFoundException) { return TimeZoneInfo.Utc; }
+        catch (InvalidTimeZoneException) { return TimeZoneInfo.Utc; }
+    }
+
+    /// <param name="tz">The child's time zone; days and hours are bucketed in local time. Defaults to UTC.</param>
+    /// <param name="includeCorrelations">Premium feature: tag/fluid-to-stool observations.</param>
+    public static InsightsDto Compute(IReadOnlyList<LogEntry> logs, int days, DateTime now, Prediction? prediction = null,
+        TimeZoneInfo? tz = null, bool includeCorrelations = false)
+    {
+        tz ??= TimeZoneInfo.Utc;
         var successes = logs.Where(LogRules.IsSuccess).OrderBy(l => l.OccurredAt).ToList();
         var accidents = logs.Where(LogRules.IsAccident).OrderBy(l => l.OccurredAt).ToList();
         var attempts = successes.Count + accidents.Count;
@@ -19,14 +33,14 @@ public static class InsightsCalculator
         var avgGap = gaps.Count == 0 ? 0 : Math.Round(gaps.Average(), 0);
 
         var byHour = new int[24];
-        foreach (var s in successes) byHour[s.OccurredAt.Hour]++;
+        foreach (var s in successes) byHour[Local(s.OccurredAt, tz).Hour]++;
 
-        var daily = logs.GroupBy(l => DateOnly.FromDateTime(l.OccurredAt)).OrderBy(g => g.Key)
+        var daily = logs.GroupBy(l => DateOnly.FromDateTime(Local(l.OccurredAt, tz))).OrderBy(g => g.Key)
             .Select(g => new DayInsight(g.Key, g.Count(LogRules.IsSuccess), g.Count(LogRules.IsAccident),
                 g.Count(l => l.Type == LogType.Sit), g.Count(l => l.Type == LogType.Fluid)))
             .ToList();
 
-        var balance = logs.GroupBy(l => DateOnly.FromDateTime(l.OccurredAt)).OrderBy(g => g.Key)
+        var balance = logs.GroupBy(l => DateOnly.FromDateTime(Local(l.OccurredAt, tz))).OrderBy(g => g.Key)
             .Select(g => new DailyBalance(g.Key, g.Sum(l => LogRules.IntakeMl(l) ?? 0), g.Count(l => l.Type == LogType.Fluid),
                 g.Count(l => l.Type == LogType.Food), g.Count(l => l.Type == LogType.Pee), g.Count(l => l.Type == LogType.Poop)))
             .ToList();
@@ -40,14 +54,15 @@ public static class InsightsCalculator
             stoolGaps.Count == 0 ? null : Math.Round(stoolGaps.Average() / 60, 1));
 
         return new InsightsDto(days, successes.Count, accidents.Count, rate, dryHours, avgGap,
-            prediction?.NextLikelyAt, prediction?.Model, byHour, daily, balance, io, Notes(logs, now));
+            prediction?.NextLikelyAt, prediction?.Model, byHour, daily, balance, io, Notes(logs, now, tz),
+            includeCorrelations ? Correlations.Analyze(logs) : []);
     }
 
     private static List<double> Gaps(IReadOnlyList<LogEntry> ordered, double minMin, double maxMin) =>
         ordered.Zip(ordered.Skip(1), (a, b) => (b.OccurredAt - a.OccurredAt).TotalMinutes).Where(m => m > minMin && m < maxMin).ToList();
 
     /// <summary>Observations to show parents. Deliberately non-diagnostic: they describe patterns and suggest asking a professional.</summary>
-    private static List<InsightNote> Notes(IReadOnlyList<LogEntry> logs, DateTime now)
+    private static List<InsightNote> Notes(IReadOnlyList<LogEntry> logs, DateTime now, TimeZoneInfo tz)
     {
         var notes = new List<InsightNote>();
         var stools = logs.Where(l => l.Type == LogType.Poop).OrderBy(l => l.OccurredAt).ToList();
@@ -64,7 +79,7 @@ public static class InsightsCalculator
 
         // Fewer wees than usual in the last 24h compared with the earlier average, needing >= 3 earlier days of data.
         var earlier = logs.Where(l => l.Type == LogType.Pee && l.OccurredAt < now.AddHours(-24)).ToList();
-        var earlierDays = earlier.Select(l => DateOnly.FromDateTime(l.OccurredAt)).Distinct().Count();
+        var earlierDays = earlier.Select(l => DateOnly.FromDateTime(Local(l.OccurredAt, tz))).Distinct().Count();
         if (earlierDays >= 3)
         {
             var avgPerDay = earlier.Count / (double)earlierDays;

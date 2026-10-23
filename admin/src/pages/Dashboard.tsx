@@ -10,7 +10,7 @@ export default function Dashboard() {
   const max = Math.max(1, ...s.signupsLast30Days.map(d => d.count))
   const tiles: [string, string | number][] = [
     ['Total users', s.totalUsers], ['Active (7d)', s.activeLast7Days], ['Paying users', s.payingUsers],
-    ['Est. MRR', `$${s.estimatedMrr.toFixed(2)}`], ['Children', s.totalChildren], ['Logs (7d)', s.logsLast7Days], ['Waitlist', s.waitlist],
+    ['Est. MRR', `$${s.estimatedMrr.toFixed(2)}`], ['Children', s.totalChildren], ['Active children (7d)', s.activeChildren7d], ['Shared children', s.sharedChildren], ['Logs (7d)', s.logsLast7Days], ['Waitlist', s.waitlist],
   ]
   return (
     <>
@@ -23,6 +23,13 @@ export default function Dashboard() {
             <div key={d.date} className="bar" title={`${d.date.slice(0, 10)}: ${d.count}`} style={{ height: `${(d.count / max) * 100}%` }} />
           ))}</div>
         )}
+      </div>
+      <div className="panel">
+        <h3>What parents log, last 30 days</h3>
+        {s.logsByType30d.length === 0 ? <p className="muted">No logs yet.</p> : (
+          <table><tbody>{[...s.logsByType30d].sort((a, b) => b.count - a.count).map(t => <tr key={t.type}><td>{t.type}</td><td>{t.count}</td></tr>)}</tbody></table>
+        )}
+        <small className="muted">Aggregate counts only. Individual children's logs are deliberately not viewable here.</small>
       </div>
     </>
   )

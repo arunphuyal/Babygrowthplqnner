@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Hosting;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -6,20 +5,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace PottyTrain.Api.Tests;
 
-public class ApiTests : IClassFixture<ApiTests.Factory>
+public class ApiTests : IClassFixture<TestFactory>
 {
-    public class Factory : WebApplicationFactory<Program>
-    {
-        private readonly string _db = Path.Combine(Path.GetTempPath(), $"pt-test-{Guid.NewGuid():N}.db");
-        protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder b)
-        {
-            b.UseEnvironment("Development");
-            b.UseSetting("ConnectionStrings:Default", $"Data Source={_db}");
-        }
-    }
-
-    private readonly Factory _f;
-    public ApiTests(Factory f) => _f = f;
+    private readonly TestFactory _f;
+    public ApiTests(TestFactory f) => _f = f;
 
     private async Task<(HttpClient Client, string ChildId)> Setup()
     {

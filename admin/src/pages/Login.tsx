@@ -12,9 +12,9 @@ export default function Login() {
     e.preventDefault()
     setError('')
     try {
-      const r = await api<{ token: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+      const r = await api<{ token: string; refreshToken: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
       if (r.user.role !== 'Admin') { setError('This account is not an administrator.'); return }
-      auth.set(r.token)
+      auth.set(r.token, r.refreshToken)
       nav('/')
     } catch (err) { setError((err as Error).message) }
   }

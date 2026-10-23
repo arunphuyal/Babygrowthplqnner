@@ -24,7 +24,7 @@ export default function Users() {
           <tr key={u.id}>
             <td>{u.displayName}{u.role === 'Admin' && <span className="pill">admin</span>}</td>
             <td>{u.email}</td>
-            <td><select value={u.plan} onChange={e => patch(u.id, { plan: e.target.value })}><option>Free</option><option>Premium</option><option>Family</option></select></td>
+            <td><select value={u.plan} onChange={e => patch(u.id, { plan: e.target.value })}><option>Free</option><option>Premium</option><option>Family</option></select>{u.planExpiresAt && <small className="muted"> until {new Date(u.planExpiresAt).toLocaleDateString()}</small>}</td>
             <td>{new Date(u.createdAt).toLocaleDateString()}</td>
             <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : '—'}</td>
             <td><button className="link" onClick={() => patch(u.id, { isActive: !u.isActive })}>{u.isActive ? 'Active · deactivate' : 'Disabled · activate'}</button></td>

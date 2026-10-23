@@ -8,7 +8,7 @@ public static class Seeder
 {
     public static async Task SeedAsync(AppDb db, PasswordService pw, IConfiguration cfg, ILogger logger)
     {
-        await db.Database.EnsureCreatedAsync();
+        await db.Database.MigrateAsync();
 
         var adminEmail = cfg["Seed:AdminEmail"] ?? "admin@pottytrain.local";
         if (!await db.Users.AnyAsync(u => u.Role == UserRole.Admin))

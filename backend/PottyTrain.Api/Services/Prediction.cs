@@ -2,13 +2,15 @@ using PottyTrain.Api.Domain;
 
 namespace PottyTrain.Api.Services;
 
-public record PredictionContext(IReadOnlyList<LogEntry> Logs, DateTime Now);
+/// <param name="IsPremium">Whether the child's owner has a paid plan; predictors that <see cref="IPottyPredictor.RequiresPremium"/> are skipped otherwise.</param>
+public record PredictionContext(IReadOnlyList<LogEntry> Logs, DateTime Now, bool IsPremium = true);
 public record Prediction(DateTime NextLikelyAt, double Confidence, string Model, string? Reason);
 
 /// <summary>A strategy that estimates the next likely potty visit. Register implementations in DI; <see cref="PredictionService"/> picks the most confident one.</summary>
 public interface IPottyPredictor
 {
     string Name { get; }
+    bool RequiresPremium => false;
     /// <summary>Returns null when there is not enough (or no relevant) data.</summary>
     Prediction? Predict(PredictionContext ctx);
 }
@@ -100,6 +102,7 @@ public class FluidAwarePredictor : IPottyPredictor
     public const int MinSamples = 5;
     public static readonly TimeSpan MaxOverdue = TimeSpan.FromMinutes(30);
     public string Name => "fluid-aware";
+    public bool RequiresPremium => true;
 
     public Prediction? Predict(PredictionContext ctx)
     {
@@ -127,7 +130,7 @@ public class PredictionService(IEnumerable<IPottyPredictor> predictors)
 {
     public (Prediction? Best, List<Prediction> Alternatives) Predict(PredictionContext ctx)
     {
-        var all = predictors.Select(p => p.Predict(ctx)).OfType<Prediction>().OrderByDescending(p => p.Confidence).ToList();
+        var all = predictors.Where(p => ctx.IsPremium || !p.RequiresPremium).Select(p => p.Predict(ctx)).OfType<Prediction>().OrderByDescending(p => p.Confidence).ToList();
         return (all.FirstOrDefault(), all.Skip(1).ToList());
     }
 }

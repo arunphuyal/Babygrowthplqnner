@@ -29,10 +29,15 @@ public class User
     public string DisplayName { get; set; } = "";
     public UserRole Role { get; set; } = UserRole.Parent;
     public Plan Plan { get; set; } = Plan.Free;
+    /// <summary>When a paid plan lapses (set by billing webhooks). Null = no expiry (e.g. granted by an admin).</summary>
+    public DateTime? PlanExpiresAt { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }
     public List<Child> Children { get; set; } = new();
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public Plan EffectivePlan => PlanExpiresAt is { } e && e < DateTime.UtcNow ? Plan.Free : Plan;
 }
 
 public class Child
@@ -44,6 +49,8 @@ public class Child
     public DateOnly BirthDate { get; set; }
     public DateOnly? TrainingStartDate { get; set; }
     public string? Notes { get; set; }
+    /// <summary>IANA time zone (e.g. "Europe/London") used to bucket logs into the child's local days and hours.</summary>
+    public string TimeZoneId { get; set; } = "UTC";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public List<LogEntry> Logs { get; set; } = new();
 }
@@ -68,6 +75,7 @@ public class LogEntry
     public string? Category { get; set; }
     /// <summary>Comma-separated lowercase tags, e.g. "fibre,dairy" (Fluid and Food).</summary>
     public string? Tags { get; set; }
+    public Guid? LoggedByUserId { get; set; }
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -102,4 +110,47 @@ public class WaitlistEntry
     public string Email { get; set; } = "";
     public string? Source { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>A user (other than the owner) who may view, and optionally add logs to, a child.</summary>
+public class ChildCaregiver
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ChildId { get; set; }
+    public Child? Child { get; set; }
+    public Guid UserId { get; set; }
+    public User? User { get; set; }
+    public bool CanEdit { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class ChildInvite
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ChildId { get; set; }
+    public Child? Child { get; set; }
+    public string CodeHash { get; set; } = "";
+    public bool CanEdit { get; set; } = true;
+    public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UsedAt { get; set; }
+}
+
+public class RefreshToken
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid UserId { get; set; }
+    public string TokenHash { get; set; } = "";
+    public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? RevokedAt { get; set; }
+}
+
+public class PasswordResetToken
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid UserId { get; set; }
+    public string TokenHash { get; set; } = "";
+    public DateTime ExpiresAt { get; set; }
+    public DateTime? UsedAt { get; set; }
 }
