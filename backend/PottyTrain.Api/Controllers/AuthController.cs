@@ -14,7 +14,7 @@ namespace PottyTrain.Api.Controllers;
 public class AuthController(AppDb db, TokenService tokens, PasswordService passwords, IEmailSender email,
     IOptions<JwtOptions> jwt, IConfiguration config) : ApiBase
 {
-    internal static UserDto ToDto(User u) => new(u.Id, u.Email, u.DisplayName, u.Role, u.EffectivePlan, u.PlanExpiresAt, u.IsActive, u.CreatedAt, u.LastLoginAt);
+    internal static UserDto ToDto(User u) => new(u.Id, u.Email, u.DisplayName, u.Role, u.EffectivePlan, u.PlanExpiresAt, u.IsActive, u.CreatedAt, u.LastLoginAt, u.Language);
 
     private async Task<AuthResponse> Issue(User user)
     {
@@ -33,7 +33,7 @@ public class AuthController(AppDb db, TokenService tokens, PasswordService passw
     {
         var emailAddr = req.Email.Trim().ToLowerInvariant();
         if (await db.Users.AnyAsync(u => u.Email == emailAddr)) return Conflict(new { error = "Email already registered" });
-        var user = new User { Email = emailAddr, DisplayName = req.DisplayName.Trim(), PasswordHash = passwords.Hash(req.Password), LastLoginAt = DateTime.UtcNow };
+        var user = new User { Email = emailAddr, DisplayName = req.DisplayName.Trim(), PasswordHash = passwords.Hash(req.Password), LastLoginAt = DateTime.UtcNow, Language = req.Language ?? "en" };
         db.Users.Add(user);
         await db.SaveChangesAsync();
         return Ok(await Issue(user));
@@ -89,7 +89,8 @@ public class AuthController(AppDb db, TokenService tokens, PasswordService passw
             db.PasswordResetTokens.Add(new PasswordResetToken { UserId = user.Id, TokenHash = Secrets.Hash(token), ExpiresAt = DateTime.UtcNow.AddHours(1) });
             await db.SaveChangesAsync();
             var link = $"{config["App:ResetUrl"] ?? "https://pottytrain.local/reset-password"}?token={token}";
-            await email.SendAsync(user.Email, "Reset your PottyTrain password",
+            var app = config["App:Name"] ?? "your account";
+            await email.SendAsync(user.Email, $"Reset your {app} password",
                 $"Hi {user.DisplayName},\n\nUse this link within 1 hour to choose a new password:\n{link}\n\nIf you didn't ask for this, you can ignore this email.");
         }
         return Ok(new { sent = true });

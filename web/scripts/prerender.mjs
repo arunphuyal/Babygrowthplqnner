@@ -8,7 +8,7 @@ import path from 'node:path'
 const DIST = path.resolve('dist')
 const SITE = (process.env.VITE_SITE_URL || 'https://example.com').replace(/\/$/, '')
 const API = (process.env.PRERENDER_API_URL || 'http://localhost:5080').replace(/\/$/, '')
-const NAME = 'PottyTrain'
+const NAME = process.env.VITE_SITE_NAME || 'PottyTrain'
 const DESCRIPTION = "Free potty training tracker for parents: log wees, poos, accidents, drinks and food, spot your toddler's patterns and get a calm, clear plan."
 
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -64,7 +64,7 @@ const urls = [{ loc: '/', priority: '1.0' }, { loc: '/guides', priority: '0.8' }
 
 let articles = []
 try {
-  articles = await getJson('/api/articles')
+  articles = await getJson('/api/articles?lang=en')
 } catch (e) {
   console.warn(`prerender: could not read guides from ${API} (${e.message}). Writing static pages and a sitemap without guides.`)
 }
@@ -82,7 +82,7 @@ await write('/guides', page(template, {
 
 for (const a of articles) {
   let full
-  try { full = await getJson(`/api/articles/${encodeURIComponent(a.slug)}`) } catch (e) { console.warn(`prerender: skipping ${a.slug}: ${e.message}`); continue }
+  try { full = await getJson(`/api/articles/${encodeURIComponent(a.slug)}?lang=en`) } catch (e) { console.warn(`prerender: skipping ${a.slug}: ${e.message}`); continue }
   if (full.locked || !full.body) continue // gated content is never written into public HTML
   const urlPath = `/guides/${a.slug}`
   const description = full.metaDescription || full.summary

@@ -1,12 +1,13 @@
 import { SITE } from './site'
 
 /**
- * Optional third-party measurement and marketing tags. Nothing here loads until the visitor has opted in to the matching category,
+ * Optional third-party measurement and marketing tags (Google tag, Meta Pixel). Nothing here loads until the visitor has opted in to the matching category,
  * and this module is only used by the public website. Never send child names, health data or email addresses in event parameters.
  */
 declare global { interface Window { dataLayer?: unknown[]; gtag?: (...a: unknown[]) => void; fbq?: ((...a: unknown[]) => void) & { callMethod?: unknown; queue?: unknown[]; loaded?: boolean; version?: string; push?: unknown } } }
 
-let gaLoaded = false
+let googleLoaded = false
+let analyticsAllowed = false
 let metaLoaded = false
 
 function script(src: string) {
@@ -17,18 +18,24 @@ function script(src: string) {
 }
 
 export function applyConsent(analytics: boolean, advertising: boolean) {
-  // Google tag (GA4), analytics category. Consent Mode starts denied and is only upgraded on opt-in.
-  if (SITE.gaMeasurementId) {
+  analyticsAllowed = analytics
+
+  // Google tag with Consent Mode v2. The script is not fetched until the visitor allows at least one category; every signal starts
+  // "denied" and is then granted per category: analytics -> analytics_storage, advertising -> ad_storage / ad_user_data / ad_personalization.
+  if (SITE.googleTagId) {
     window.dataLayer = window.dataLayer ?? []
     window.gtag = window.gtag ?? function () { window.dataLayer!.push(arguments) }
-    if (analytics && !gaLoaded) {
-      gaLoaded = true
+    if ((analytics || advertising) && !googleLoaded) {
+      googleLoaded = true
       window.gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' })
-      script(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(SITE.gaMeasurementId)}`)
+      script(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(SITE.googleTagId)}`)
       window.gtag('js', new Date())
-      window.gtag('config', SITE.gaMeasurementId, { send_page_view: false, anonymize_ip: true })
+      window.gtag('config', SITE.googleTagId, { send_page_view: false, anonymize_ip: true })
     }
-    if (gaLoaded) window.gtag('consent', 'update', { analytics_storage: analytics ? 'granted' : 'denied' })
+    if (googleLoaded) {
+      const a = advertising ? 'granted' : 'denied'
+      window.gtag('consent', 'update', { analytics_storage: analytics ? 'granted' : 'denied', ad_storage: a, ad_user_data: a, ad_personalization: a })
+    }
   }
 
   // Meta Pixel, advertising/marketing category.
@@ -48,14 +55,14 @@ export function applyConsent(analytics: boolean, advertising: boolean) {
 
 /** Page views for the single-page app (call on every route change). Silent unless the matching tag is loaded and allowed. */
 export function trackPageView(path: string) {
-  if (gaLoaded) window.gtag?.('event', 'page_view', { page_path: path, page_location: SITE.url + path })
+  if (googleLoaded && analyticsAllowed) window.gtag?.('event', 'page_view', { page_path: path, page_location: SITE.url + path })
   if (metaLoaded) window.fbq?.('track', 'PageView')
 }
 
 export type EventName = 'waitlist_join' | 'donate_start' | 'donate_thanks' | 'guide_view'
 
 export function track(name: EventName, params: Record<string, string | number> = {}) {
-  if (gaLoaded) window.gtag?.('event', name, params)
+  if (googleLoaded && analyticsAllowed) window.gtag?.('event', name, params)
   if (metaLoaded) {
     if (name === 'waitlist_join') window.fbq?.('track', 'Lead')
     else window.fbq?.('trackCustom', name, params)

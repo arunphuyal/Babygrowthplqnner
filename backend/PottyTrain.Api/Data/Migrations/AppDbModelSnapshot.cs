@@ -40,6 +40,13 @@ namespace PottyTrain.Api.Data.Migrations
                     b.Property<bool>("IsPublished")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("en");
+
                     b.Property<string>("MetaDescription")
                         .HasMaxLength(320)
                         .HasColumnType("TEXT");
@@ -65,7 +72,7 @@ namespace PottyTrain.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Slug")
+                    b.HasIndex("Language", "Slug")
                         .IsUnique();
 
                     b.ToTable("Articles");
@@ -408,6 +415,13 @@ namespace PottyTrain.Api.Data.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("en");
 
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("TEXT");

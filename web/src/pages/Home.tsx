@@ -14,7 +14,7 @@ const features = [
 ]
 
 const faqs = [
-  ['Is PottyTrain really free?', 'Yes. Every feature is free for now. We cover the running costs with small donations and ads on our website guides (never inside your child\'s log).'],
+  ['Is it really free?', 'Yes. Every feature is free for now. We cover the running costs with optional contributions and, if you allow them, ads on our website guides (never inside your child\'s log).'],
   ['When should I start potty training?', 'Most children show signs of readiness between 18 and 36 months. Every child is different. Our readiness guide helps you decide.'],
   ['Is my child\'s data private?', 'Yes. We only store what you log, never sell it, never show ads next to it, and you can delete everything at any time.'],
   ['How do I sign in?', 'With your email address and a password. You can reset your password by email if you forget it.'],
@@ -22,7 +22,7 @@ const faqs = [
 ]
 
 export default function Home() {
-  useSeo({ title: 'PottyTrain – Free potty training tracker for parents', description: SITE.description, path: '/', jsonLd: [organizationLd(), websiteLd(), faqLd(faqs)] })
+  useSeo({ title: `${SITE.name} – Free potty training tracker for parents`, description: SITE.description, path: '/', jsonLd: [organizationLd(), websiteLd(), faqLd(faqs)] })
   useEffect(() => {
     if (window.location.hash) document.querySelector(window.location.hash)?.scrollIntoView() // arrived via /#support from another page
   }, [])
@@ -32,7 +32,7 @@ export default function Home() {
         <div>
           <p className="eyebrow">Free potty training tracker</p>
           <h1>Log every step. <span>Spot the pattern.</span> Celebrate the win.</h1>
-          <p className="lead">PottyTrain helps parents track pee, poop, accidents, drinks and food, predicts the next potty time and turns a messy phase into clear progress. Free for every family.</p>
+          <p className="lead">{SITE.name} helps parents track pee, poop, accidents, drinks and food, predicts the next potty time and turns a messy phase into clear progress. Free for every family.</p>
           <WaitlistForm source="hero" />
           <p className="hint">Free · iOS &amp; Android · No spam</p>
         </div>

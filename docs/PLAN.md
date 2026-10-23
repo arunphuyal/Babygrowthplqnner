@@ -25,10 +25,18 @@ Mostly iOS-first indie apps; I could not verify per-country availability from th
 ## Roadmap
 Estimates assume one developer working with an AI pair and are rough; each phase ends with something you can demo or ship. Do the phases in order; items inside a phase can be reordered.
 
+### Phase 0 – Company, brand and accounts (start now, runs in parallel)
+Several launch steps depend on a legal entity, so begin early (registration time varies by country).
+- **Brand:** pick a generic name that can grow beyond potty training (the product will become a wider baby and child growth/routine planner). Check the domain, trademark databases, app store names and social handles before committing; avoid names containing "potty". Until then the name is a setting (`VITE_SITE_NAME`, `VITE_APP_NAME`, `App:Name`), so changing it needs no code changes, only a rebuild. Internal code names (`PottyTrain.Api` namespaces) can be renamed later with a mechanical refactor.
+- **Company:** register it, open a business bank account, get tax IDs (and VAT/GST if applicable), and get a D-U-N-S number (Apple and Google need one to publish under an organisation account).
+- **Accounts in the company's name:** domain, hosting, Stripe, Google AdSense and Google Search Console/Tag, Apple Developer ($99/yr) and Google Play ($25 once) developer accounts, an email provider, an error-tracking account.
+- **Legal:** privacy policy and terms with the company's name and address (replace the draft text in `web/src/pages/Privacy.tsx`), a cookie/consent tool, a data-processing record, and an accountant's view on how contributions and ad income are taxed. Because the company is not a charity, the app says "support" and "contribution", not "donation", and Stripe's button says "Pay".
+- **Exit criteria:** entity registered, brand and domain locked, store and Stripe accounts opened.
+
 ### Phase 1 – Launch-ready web and API (about 2 weeks)
 Goal: a public site you can safely point real parents at.
-- **Hosting:** pick one platform (see decisions below), containerise the API (Dockerfile), serve the two SPAs from static hosting/CDN with `index.html` fallback, HTTPS and a custom domain.
-- **Database:** move from SQLite to PostgreSQL (swap the EF provider, regenerate the initial migration), automated daily backups and a tested restore.
+- **Hosting:** decided to self-host. The website and admin portal go on cPanel as static files (rules and packaging are done: `docs/HOSTING.md`, `deploy/package.sh`, tested on Apache). Shared cPanel usually cannot run the ASP.NET Core API, so confirm with the host and otherwise run the API on a small Linux VPS (systemd + Caddy templates in `deploy/`) or on Windows/IIS hosting. A Dockerfile is no longer a priority.
+- **Database:** SQLite is acceptable on a single server at the start, with daily backups copied off-server and a tested restore (`deploy/backup-sqlite.sh`). Move to PostgreSQL when traffic or reliability needs grow.
 - **CI/CD:** GitHub Actions to build, run `dotnet test`, build both frontends, and deploy from the main branch. Secrets only from the platform's secret store.
 - **Config hardening:** no dev defaults in production (JWT key, admin seed), CORS to your domains, forwarded headers for the rate limiter, security headers (HSTS, CSP for the website that allows AdSense and Stripe), request size limits.
 - **Accounts:** email verification at sign-up, a web "reset password" page, account **export** and **delete** endpoints (GDPR/CCPA; currently by email only), access-token revocation list or a shorter lifetime for admins, admin 2FA.
@@ -41,11 +49,13 @@ Goal: a public site you can safely point real parents at.
 
 ### Phase 2 – Mobile app MVP (about 6 weeks)
 Goal: parents can actually track. This is the product; the site and API exist to support it.
-- **Stack:** Expo/React Native with TypeScript (reuses your React skills and the API client). Generate the TypeScript client from the API's OpenAPI document so types never drift.
+- **Stack (decided):** Expo/React Native with TypeScript (reuses your React skills and the API client). English is the default language and the content model already carries a language per account and per guide; use `i18next` with `expo-localization` from day one so strings are never hard-coded. Generate the TypeScript client from the API's OpenAPI document so types never drift.
 - **Core screens:** sign-up/login (email), add child, today timeline, big one-tap buttons for wee/poo/accident/sit/drink/food with optional details (size, Bristol type, colour, tags), edit/delete, insights (success rate, dry streak, hourly chart, intake vs output), next-potty prediction, guides (offline cache), settings (time zone, export, delete account), caregiver invite/accept.
 - **Offline-first:** local queue with client-generated IDs so retries never create duplicate logs. **Backend change needed:** accept a client-supplied log id (idempotent create) and return `409`/the existing row on repeat; add a `since` cursor for efficient sync.
 - **Push reminders:** device-token registration endpoint, a background service that schedules "try the potty now" notifications from predictions with quiet hours and a per-child on/off, via Expo push / FCM / APNs.
 - **Quality:** crash reporting, accessibility (large tap targets, screen reader labels), dark mode, English first with strings ready for translation.
+- **Store rules to settle before building in-app support options:** Apple and Google generally require their own billing for digital purchases and tips by non-charities, which makes a Stripe contribution button inside the app likely to be rejected. Plan to keep contributions on the website (link out only if the current store policy for your regions allows it) or to offer a store-billing "tip" product. Rules change often: read the current App Store Review Guidelines and Google Play payments policy before designing this.
+- **Ads in the app:** the website asks parents to allow ads (optional). If you ever want ads in the app, treat it as a separate project: the consent SDK for each store, no ads on screens that show a child's data, and legal review. The default plan stays ad-free in the app.
 - **Privacy in the app:** no advertising SDKs, analytics only first-party or privacy-friendly and opt-out, secure token storage, optional app lock (PIN/biometric).
 - **Exit criteria:** a parent can sign up, log a full day offline and online, see insights and a prediction, and share with a partner. Internal testers use it for a week.
 
@@ -89,11 +99,11 @@ Order by what beta data shows parents want; likely candidates:
 ## Decisions needed from you
 | Decision | Options | My recommendation |
 |---|---|---|
-| Hosting | Azure App Service + Azure Postgres, or Fly.io/Railway/Render with managed Postgres | A managed platform with simple deploys; Azure if you want the .NET path of least friction |
-| Mobile framework | Expo/React Native or .NET MAUI | Expo/React Native (shares skills and code style with the web and admin) |
-| Legal entity for donations and ads | Individual, company, or non-profit | Decide before turning on live Stripe and AdSense; tax rules differ |
-| Languages and markets | English first, then which? | Pick from beta and SEO data |
-| Product name and domain | Keep "PottyTrain"? | Run a trademark and domain search before spending on branding |
+| Hosting | **Decided:** self-hosted, static sites on cPanel. **Still open:** where the API runs (Linux VPS, Windows/IIS, or managed) | A small Linux VPS for the API; see `docs/HOSTING.md` |
+| Mobile framework | **Decided:** React Native (Expo) | - |
+| Legal entity | **Decided:** register a company | Phase 0; open the accounts in its name |
+| Languages and markets | **Decided:** English by default | Add other languages from beta and SEO data |
+| Product name and domain | **Decided:** a generic name, not potty-specific | Shortlist, then check domain, trademarks, store names |
 | Analytics | None, self-hosted, or privacy-friendly SaaS | Privacy-friendly, first-party, opt-out |
 | Clinical review of content | Self-written, or reviewed by a health professional | Reviewed if budget allows; otherwise keep content general and cautious |
 

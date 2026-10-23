@@ -49,19 +49,19 @@ export function ConsentBanner() {
   if (!hasOptionalTracking || consent.decided) return null
   return (
     <div className="consent" role="dialog" aria-label="Cookie choices">
-      <p>We keep PottyTrain free with ads and use light analytics on this website (never inside your child's tracking). They use cookies or similar technology only if you agree. <a href="/privacy">Details</a></p>
+      <p>{SITE.name} is free. If you'd like to help keep it that way you can <b>allow ads</b> on this website, or <a href="/#support">make a one-off contribution</a>. Both are completely optional and nothing stops working if you say no. Ads and analytics use cookies only if you agree, and never appear inside your child's tracking. <a href="/privacy">Details</a></p>
       {custom && (
         <div className="choices">
           <label><input type="checkbox" checked disabled /> Essential (always on)</label>
-          {(SITE.gaMeasurementId) && <label><input type="checkbox" checked={analytics} onChange={e => setAnalytics(e.target.checked)} /> Analytics: how the site is used</label>}
-          {(SITE.adsenseClient || SITE.metaPixelId) && <label><input type="checkbox" checked={advertising} onChange={e => setAdvertising(e.target.checked)} /> Advertising &amp; marketing</label>}
+          {(SITE.googleTagId) && <label><input type="checkbox" checked={analytics} onChange={e => setAnalytics(e.target.checked)} /> Analytics: help us see how the site is used</label>}
+          {(SITE.adsenseClient || SITE.metaPixelId || SITE.googleTagId) && <label><input type="checkbox" checked={advertising} onChange={e => setAdvertising(e.target.checked)} /> Ads: support us by allowing ads &amp; marketing</label>}
         </div>
       )}
       <div>
-        <button className="btn small ghost" onClick={() => setConsent(false, false)}>Essential only</button>
+        <button className="btn small ghost" onClick={() => setConsent(false, false)}>No thanks</button>
         {custom ? <button className="btn small ghost" onClick={() => setConsent(analytics, advertising)}>Save choices</button>
           : <button className="btn small ghost" onClick={() => setCustom(true)}>Choose</button>}
-        <button className="btn small" onClick={() => setConsent(true, true)}>Allow all</button>
+        <button className="btn small" onClick={() => setConsent(true, true)}>Allow ads &amp; analytics</button>
       </div>
     </div>
   )

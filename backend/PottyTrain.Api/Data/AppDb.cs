@@ -42,7 +42,9 @@ public class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
         b.Entity<RefreshToken>().HasIndex(t => t.TokenHash).IsUnique();
         b.Entity<RefreshToken>().HasIndex(t => t.UserId);
         b.Entity<PasswordResetToken>().HasIndex(t => t.TokenHash).IsUnique();
-        b.Entity<Article>().HasIndex(a => a.Slug).IsUnique();
+        b.Entity<Article>().HasIndex(a => new { a.Language, a.Slug }).IsUnique(); // the same slug can exist once per language
+        b.Entity<Article>().Property(a => a.Language).HasMaxLength(10).HasDefaultValue("en");
+        b.Entity<User>().Property(u => u.Language).HasMaxLength(10).HasDefaultValue("en");
         b.Entity<WaitlistEntry>().HasIndex(w => w.Email).IsUnique();
         b.Entity<PlanOffer>().Property(p => p.MonthlyPrice).HasPrecision(10, 2);
         b.Entity<PlanOffer>().Property(p => p.YearlyPrice).HasPrecision(10, 2);

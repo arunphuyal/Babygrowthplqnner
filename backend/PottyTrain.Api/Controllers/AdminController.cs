@@ -88,8 +88,9 @@ public class AdminController(AppDb db) : ApiBase
     [HttpPost("articles")]
     public async Task<ActionResult<Article>> CreateArticle(ArticleRequest r)
     {
-        if (await db.Articles.AnyAsync(a => a.Slug == r.Slug)) return Conflict(new { error = "Slug already exists" });
-        var a = new Article { Slug = r.Slug, Title = r.Title, Summary = r.Summary, Body = r.Body, IsPremium = r.IsPremium, IsPublished = r.IsPublished,
+        var lang = r.Language ?? "en";
+        if (await db.Articles.AnyAsync(a => a.Slug == r.Slug && a.Language == lang)) return Conflict(new { error = "Slug already exists for this language" });
+        var a = new Article { Slug = r.Slug, Language = lang, Title = r.Title, Summary = r.Summary, Body = r.Body, IsPremium = r.IsPremium, IsPublished = r.IsPublished,
             MetaTitle = r.MetaTitle, MetaDescription = r.MetaDescription, FocusKeyword = r.FocusKeyword };
         db.Articles.Add(a);
         await db.SaveChangesAsync();
@@ -101,8 +102,9 @@ public class AdminController(AppDb db) : ApiBase
     {
         var a = await db.Articles.FindAsync(id);
         if (a is null) return NotFound();
-        if (await db.Articles.AnyAsync(x => x.Slug == r.Slug && x.Id != id)) return Conflict(new { error = "Slug already exists" });
-        a.Slug = r.Slug; a.Title = r.Title; a.Summary = r.Summary; a.Body = r.Body;
+        var lang = r.Language ?? a.Language;
+        if (await db.Articles.AnyAsync(x => x.Slug == r.Slug && x.Language == lang && x.Id != id)) return Conflict(new { error = "Slug already exists for this language" });
+        a.Slug = r.Slug; a.Language = lang; a.Title = r.Title; a.Summary = r.Summary; a.Body = r.Body;
         a.IsPremium = r.IsPremium; a.IsPublished = r.IsPublished; a.UpdatedAt = DateTime.UtcNow;
         a.MetaTitle = r.MetaTitle; a.MetaDescription = r.MetaDescription; a.FocusKeyword = r.FocusKeyword;
         await db.SaveChangesAsync();

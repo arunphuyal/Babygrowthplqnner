@@ -3,7 +3,8 @@ using PottyTrain.Api.Domain;
 
 namespace PottyTrain.Api.Dtos;
 
-public record RegisterRequest([Required, EmailAddress] string Email, [Required, MinLength(8)] string Password, [Required] string DisplayName);
+public record RegisterRequest([Required, EmailAddress] string Email, [Required, MinLength(8)] string Password, [Required] string DisplayName,
+    [RegularExpression(@"^[a-z]{2}(-[A-Z]{2})?$")] string? Language = null);
 public record LoginRequest([Required] string Email, [Required] string Password);
 public record AuthResponse(string Token, DateTime ExpiresAt, string RefreshToken, UserDto User);
 public record RefreshRequest([Required] string RefreshToken);
@@ -13,7 +14,7 @@ public record InviteRequest(bool CanEdit = true);
 public record InviteResponse(string Code, DateTime ExpiresAt, bool CanEdit);
 public record AcceptInviteRequest([Required] string Code);
 public record CaregiverDto(Guid UserId, string DisplayName, string Email, bool CanEdit);
-public record UserDto(Guid Id, string Email, string DisplayName, UserRole Role, Plan Plan, DateTime? PlanExpiresAt, bool IsActive, DateTime CreatedAt, DateTime? LastLoginAt);
+public record UserDto(Guid Id, string Email, string DisplayName, UserRole Role, Plan Plan, DateTime? PlanExpiresAt, bool IsActive, DateTime CreatedAt, DateTime? LastLoginAt, string Language = "en");
 
 public record ChildRequest([Required, MaxLength(100)] string Name, DateOnly BirthDate, DateOnly? TrainingStartDate, string? Notes, string? TimeZoneId = null);
 public record ChildDto(Guid Id, string Name, DateOnly BirthDate, DateOnly? TrainingStartDate, string? Notes, string TimeZoneId, bool IsOwner, bool CanEdit);
@@ -39,7 +40,8 @@ public record PredictionDto(DateTime NextLikelyAt, double Confidence, string Mod
 public record PredictionResponse(PredictionDto? Best, List<PredictionDto> Alternatives);
 
 public record ArticleRequest([Required, RegularExpression("^[a-z0-9-]{1,80}$")] string Slug, [Required] string Title, string Summary, string Body, bool IsPremium, bool IsPublished,
-    [MaxLength(120)] string? MetaTitle = null, [MaxLength(320)] string? MetaDescription = null, [MaxLength(80)] string? FocusKeyword = null);
+    [MaxLength(120)] string? MetaTitle = null, [MaxLength(320)] string? MetaDescription = null, [MaxLength(80)] string? FocusKeyword = null,
+    [RegularExpression(@"^[a-z]{2}(-[A-Z]{2})?$")] string? Language = null);
 public record PlanOfferRequest(Plan Plan, [Required] string Name, decimal MonthlyPrice, decimal YearlyPrice, string Features, bool IsActive);
 public record UpdateUserRequest(Plan? Plan, bool? IsActive, UserRole? Role);
 public record WaitlistRequest([Required, EmailAddress] string Email, [MaxLength(200)] string? Source);

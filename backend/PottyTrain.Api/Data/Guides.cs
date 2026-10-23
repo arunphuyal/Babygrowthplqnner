@@ -27,7 +27,7 @@ Most children are ready somewhere between 18 and 36 months, but there is no dead
 - Dislikes a wet or dirty nappy
 
 ## What if my child is not ready?
-If you start and it turns into a battle, it is fine to pause for a few weeks and try again. Pressure and punishment tend to backfire. Logging a few days in PottyTrain before you begin can show you how regular your child's pattern already is, which makes picking a start day much easier.
+If you start and it turns into a battle, it is fine to pause for a few weeks and try again. Pressure and punishment tend to backfire. Logging a few days in the app before you begin can show you how regular your child's pattern already is, which makes picking a start day much easier.
 
 If you have concerns about your child's development or toileting, speak with your paediatrician or health visitor.
 """),
@@ -72,7 +72,7 @@ Accidents are part of every child's potty training, and they often continue for 
 - Being too busy to stop playing
 
 ## When progress stalls
-Take a step back, offer the potty more regularly, and look at your log for patterns, such as accidents clustering at one time of day. If your child seems to be in pain, is withholding stools, passes very hard stools, or you notice anything that worries you, talk to your paediatrician. PottyTrain highlights patterns but cannot diagnose anything.
+Take a step back, offer the potty more regularly, and look at your log for patterns, such as accidents clustering at one time of day. If your child seems to be in pain, is withholding stools, passes very hard stools, or you notice anything that worries you, talk to your paediatrician. The app highlights patterns but cannot diagnose anything.
 
 Most children get there with patience, and setbacks do pass.
 """),
@@ -94,7 +94,7 @@ Fibre-rich foods such as fruit, vegetables, oats and wholegrain bread, along wit
 - Wees and poos: whether in the potty, and for poos the stool type
 
 ## When to ask for advice
-Speak with your paediatrician if your child often has hard or painful stools, goes several days without a poo and seems uncomfortable, has blood in their stool, or has noticeably fewer wees than usual. PottyTrain's notes are observations from your own log, not medical advice.
+Speak with your paediatrician if your child often has hard or painful stools, goes several days without a poo and seems uncomfortable, has blood in their stool, or has noticeably fewer wees than usual. the app's notes are observations from your own log, not medical advice.
 """),
     ];
 }

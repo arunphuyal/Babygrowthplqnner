@@ -2,8 +2,8 @@ import { FormEvent, useEffect, useState } from 'react'
 import { api, Article } from '../api'
 import { seoChecks } from '../seo'
 
-interface Draft { slug: string; title: string; summary: string; body: string; isPremium: boolean; isPublished: boolean; metaTitle?: string; metaDescription?: string; focusKeyword?: string }
-const blank: Draft = { slug: '', title: '', summary: '', body: '', isPremium: false, isPublished: false, metaTitle: '', metaDescription: '', focusKeyword: '' }
+interface Draft { language?: string; slug: string; title: string; summary: string; body: string; isPremium: boolean; isPublished: boolean; metaTitle?: string; metaDescription?: string; focusKeyword?: string }
+const blank: Draft = { language: 'en', slug: '', title: '', summary: '', body: '', isPremium: false, isPublished: false, metaTitle: '', metaDescription: '', focusKeyword: '' }
 
 function SeoPanel({ a }: { a: Draft }) {
   const checks = seoChecks(a)
@@ -42,6 +42,7 @@ export default function Articles() {
   if (editing) return (
     <form className="panel" onSubmit={save}>
       <h2>{editing.id ? 'Edit' : 'New'} article</h2>
+      <label>Language code<input pattern="[a-z]{2}(-[A-Z]{2})?" title="e.g. en, fr, pt-BR" value={editing.language ?? 'en'} onChange={e => setEditing({ ...editing, language: e.target.value })} /></label>
       <label>Title<input required value={editing.title} onChange={e => setEditing({ ...editing, title: e.target.value })} /></label>
       <label>Slug<input required pattern="[a-z0-9-]+" value={editing.slug} onChange={e => setEditing({ ...editing, slug: e.target.value })} /></label>
       <label>Summary<input value={editing.summary} onChange={e => setEditing({ ...editing, summary: e.target.value })} /></label>

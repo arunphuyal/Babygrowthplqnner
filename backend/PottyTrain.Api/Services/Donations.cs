@@ -16,6 +16,10 @@ public class DonationOptions
     public int[] Presets => PresetsCents.Length > 0 ? PresetsCents : [300, 500, 1000, 2500];
     public int MinCents { get; set; } = 100;
     public int MaxCents { get; set; } = 50_000;
+    /// <summary>Shown on the Stripe page. Leave empty to use "Support &lt;App:Name&gt;".</summary>
+    public string ProductName { get; set; } = "";
+    /// <summary>Stripe button wording: "pay" (neutral) or "donate". Use "donate" only if you are a registered charity.</summary>
+    public string SubmitType { get; set; } = "pay";
     public string SuccessUrl { get; set; } = "http://localhost:5173/?donation=thanks";
     public string CancelUrl { get; set; } = "http://localhost:5173/?donation=cancelled";
 
@@ -28,7 +32,7 @@ public interface IDonationCheckout
     Task<string> CreateAsync(long amountCents, CancellationToken ct = default);
 }
 
-public class StripeDonationCheckout(IOptions<DonationOptions> options) : IDonationCheckout
+public class StripeDonationCheckout(IOptions<DonationOptions> options, IConfiguration config) : IDonationCheckout
 {
     public const string Purpose = "donation";
 
@@ -39,7 +43,7 @@ public class StripeDonationCheckout(IOptions<DonationOptions> options) : IDonati
         var session = await sessions.CreateAsync(new SessionCreateOptions
         {
             Mode = "payment",
-            SubmitType = "donate",
+            SubmitType = o.SubmitType,
             SuccessUrl = o.SuccessUrl,
             CancelUrl = o.CancelUrl,
             Metadata = new Dictionary<string, string> { ["purpose"] = Purpose },
@@ -51,7 +55,7 @@ public class StripeDonationCheckout(IOptions<DonationOptions> options) : IDonati
                     PriceData = new SessionLineItemPriceDataOptions
                     {
                         Currency = o.Currency, UnitAmount = amountCents,
-                        ProductData = new SessionLineItemPriceDataProductDataOptions { Name = "Support PottyTrain" }
+                        ProductData = new SessionLineItemPriceDataProductDataOptions { Name = string.IsNullOrWhiteSpace(o.ProductName) ? $"Support {config["App:Name"] ?? "us"}" : o.ProductName }
                     }
                 }
             ]

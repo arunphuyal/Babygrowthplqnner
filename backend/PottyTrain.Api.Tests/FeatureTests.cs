@@ -290,3 +290,51 @@ public class AnalysisTests
         public Prediction? Predict(PredictionContext c) => new(c.Now, 0.4, "free", null);
     }
 }
+
+public class LanguageTests(TestFactory f) : IClassFixture<TestFactory>
+{
+    private async Task<HttpClient> Admin()
+    {
+        var c = f.CreateClient();
+        var login = await (await c.PostAsJsonAsync("/api/auth/login", new { email = "admin@pottytrain.local", password = "Admin123!dev" })).Content.ReadFromJsonAsync<JsonElement>();
+        c.DefaultRequestHeaders.Authorization = new("Bearer", login.GetProperty("token").GetString());
+        return c;
+    }
+
+    [Fact]
+    public async Task Accounts_and_guides_default_to_english()
+    {
+        var s = await f.Register();
+        Assert.Equal("en", (await s.Client.GetFromJsonAsync<JsonElement>("/api/auth/me")).GetProperty("language").GetString());
+        var guides = await f.CreateClient().GetFromJsonAsync<JsonElement>("/api/articles");
+        Assert.True(guides.GetArrayLength() >= 4);
+    }
+
+    [Fact]
+    public async Task Register_accepts_a_language_and_rejects_nonsense()
+    {
+        var c = f.CreateClient();
+        var ok = await c.PostAsJsonAsync("/api/auth/register", new { email = $"{Guid.NewGuid():N}@t.com", password = "password1", displayName = "P", language = "pt-BR" });
+        Assert.Equal("pt-BR", (await ok.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("user").GetProperty("language").GetString());
+        var bad = await c.PostAsJsonAsync("/api/auth/register", new { email = $"{Guid.NewGuid():N}@t.com", password = "password1", displayName = "P", language = "english please" });
+        Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
+    }
+
+    [Fact]
+    public async Task Same_slug_can_exist_once_per_language_and_the_public_api_filters_by_language()
+    {
+        var admin = await Admin();
+        var slug = "tr-" + Guid.NewGuid().ToString("N")[..6];
+        object Body(string lang, string title) => new { slug, title, summary = "s", body = "b", isPublished = true, language = lang };
+        Assert.Equal(HttpStatusCode.OK, (await admin.PostAsJsonAsync("/api/admin/articles", Body("en", "Hello"))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await admin.PostAsJsonAsync("/api/admin/articles", Body("fr", "Bonjour"))).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/admin/articles", Body("fr", "Again"))).StatusCode);
+
+        var anon = f.CreateClient();
+        Assert.Equal("Hello", (await anon.GetFromJsonAsync<JsonElement>($"/api/articles/{slug}")).GetProperty("title").GetString());
+        Assert.Equal("Bonjour", (await anon.GetFromJsonAsync<JsonElement>($"/api/articles/{slug}?lang=fr")).GetProperty("title").GetString());
+        Assert.Equal(HttpStatusCode.NotFound, (await anon.GetAsync($"/api/articles/{slug}?lang=de")).StatusCode);
+        var en = await anon.GetFromJsonAsync<JsonElement>("/api/articles");
+        Assert.DoesNotContain(en.EnumerateArray(), a => a.GetProperty("title").GetString() == "Bonjour");
+    }
+}

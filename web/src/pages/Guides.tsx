@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { API } from '../site'
+import { API, SITE } from '../site'
 import { AdSlot } from '../components/Ads'
 import { useSeo, articleLd } from '../seo'
 import { track } from '../trackers'
@@ -10,7 +10,7 @@ interface Full extends Summary { body: string | null; locked: boolean; metaTitle
 
 export function GuideList() {
   const [items, setItems] = useState<Summary[] | null>(null)
-  useSeo({ title: 'Potty training guides – PottyTrain', description: 'Practical, parent-friendly potty training guides: readiness, the first week, accidents, and drinks, food and poo.', path: '/guides' })
+  useSeo({ title: `Potty training guides – ${SITE.name}`, description: 'Practical, parent-friendly potty training guides: readiness, the first week, accidents, and drinks, food and poo.', path: '/guides' })
   useEffect(() => { fetch(`${API}/api/articles`).then(r => r.json()).then(setItems).catch(() => setItems([])) }, [])
   return (
     <div className="page">
@@ -44,7 +44,7 @@ export function GuidePage() {
     fetch(`${API}/api/articles/${slug}`).then(r => r.ok ? r.json() : null).then((x: Full | null) => { setG(x); if (x) track('guide_view', { slug: x.slug }) }).catch(() => setG(null))
   }, [slug])
   useSeo({
-    title: g ? (g.metaTitle || `${g.title} – PottyTrain`) : 'Guide – PottyTrain', description: g ? (g.metaDescription || g.summary) : undefined,
+    title: g ? (g.metaTitle || `${g.title} – ${SITE.name}`) : `Guide – ${SITE.name}`, description: g ? (g.metaDescription || g.summary) : undefined,
     path: `/guides/${slug}`, type: 'article', noindex: g === null, publishedTime: g?.createdAt, modifiedTime: g?.updatedAt,
     jsonLd: g ? articleLd({ title: g.title, description: g.metaDescription || g.summary, slug: g.slug, created: g.createdAt, updated: g.updatedAt }) : undefined,
   })

@@ -29,18 +29,18 @@ public class PublicController(AppDb db, Entitlements entitlements) : ApiBase
     }
 
     [HttpGet("articles")]
-    public async Task<IActionResult> Articles() =>
-        Ok(await db.Articles.Where(a => a.IsPublished).OrderByDescending(a => a.CreatedAt)
+    public async Task<IActionResult> Articles(string lang = "en") =>
+        Ok(await db.Articles.Where(a => a.IsPublished && a.Language == lang).OrderByDescending(a => a.CreatedAt)
             .Select(a => new { a.Slug, a.Title, a.Summary, a.IsPremium, a.UpdatedAt }).ToListAsync());
 
     [HttpGet("articles/{slug}")]
-    public async Task<IActionResult> Article(string slug)
+    public async Task<IActionResult> Article(string slug, string lang = "en")
     {
-        var a = await db.Articles.FirstOrDefaultAsync(x => x.Slug == slug && x.IsPublished);
+        var a = await db.Articles.FirstOrDefaultAsync(x => x.Slug == slug && x.Language == lang && x.IsPublished);
         if (a is null) return NotFound();
         var unlocked = !a.IsPremium;
         if (!unlocked && User.Identity?.IsAuthenticated == true)
             unlocked = (await db.Users.FindAsync(UserId)) is { } u && entitlements.IsPremium(u);
-        return Ok(new { a.Slug, a.Title, a.Summary, a.IsPremium, a.MetaTitle, a.MetaDescription, a.CreatedAt, a.UpdatedAt, Body = unlocked ? a.Body : null, Locked = !unlocked });
+        return Ok(new { a.Slug, a.Language, a.Title, a.Summary, a.IsPremium, a.MetaTitle, a.MetaDescription, a.CreatedAt, a.UpdatedAt, Body = unlocked ? a.Body : null, Locked = !unlocked });
     }
 }

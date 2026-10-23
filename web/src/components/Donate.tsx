@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { API } from '../site'
+import { API, SITE } from '../site'
 import { track } from '../trackers'
 
 interface Config { enabled: boolean; currency: string; presetsCents: number[]; minCents: number; maxCents: number }
@@ -32,20 +32,20 @@ export default function Donate() {
 
   return (
     <section id="support" className="section alt">
-      <h2>Free for every family</h2>
+      <h2>Free for every family. Support us if you like.</h2>
       <div className="support">
-        <p>PottyTrain is free while we grow. If it helped you, a small one-off donation covers our servers and keeps it free for the next parent. Payments are handled securely by Stripe.</p>
-        {status === 'thanks' && <p className="ok">💚 Thank you so much! Your support keeps PottyTrain free.</p>}
+        <p>{SITE.name} is free while we grow. If it has helped you, you can make a small one-off contribution towards our running costs, or simply allow ads on this website. Both are optional. Payments are handled securely by Stripe.</p>
+        {status === 'thanks' && <p className="ok">💚 Thank you so much! Your support helps keep {SITE.name} free.</p>}
         {status === 'cancelled' && <p className="muted">No problem, nothing was charged.</p>}
-        {!loaded ? null : !cfg?.enabled ? <p className="muted">Donations will open soon.</p> : (
+        {!loaded ? null : !cfg?.enabled ? <p className="muted">Contributions will open soon.</p> : (
           <>
             <div className="amounts">{cfg.presetsCents.map(c => <button key={c} className="btn ghost" disabled={busy} onClick={() => give(c)}>{money(c)}</button>)}</div>
             <form className="custom" onSubmit={e => { e.preventDefault(); give(Math.round(parseFloat(custom) * 100)) }}>
-              <input inputMode="decimal" placeholder="Other amount" value={custom} onChange={e => setCustom(e.target.value)} aria-label="Custom donation amount" />
-              <button className="btn" disabled={busy || !custom}>Donate</button>
+              <input inputMode="decimal" placeholder="Other amount" value={custom} onChange={e => setCustom(e.target.value)} aria-label="Custom amount" />
+              <button className="btn" disabled={busy || !custom}>Contribute</button>
             </form>
             {error && <p className="err">{error}</p>}
-            <small>Donations are not tax-deductible unless we tell you otherwise.</small>
+            <small>Contributions help fund a company and are not tax-deductible donations to a charity.</small>
           </>
         )}
       </div>

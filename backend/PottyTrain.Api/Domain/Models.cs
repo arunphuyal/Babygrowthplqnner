@@ -28,6 +28,8 @@ public class User
     public string PasswordHash { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public UserRole Role { get; set; } = UserRole.Parent;
+    /// <summary>BCP-47 style language code ("en", "pt-BR"). English by default.</summary>
+    public string Language { get; set; } = "en";
     public Plan Plan { get; set; } = Plan.Free;
     /// <summary>When a paid plan lapses (set by billing webhooks). Null = no expiry (e.g. granted by an admin).</summary>
     public DateTime? PlanExpiresAt { get; set; }
@@ -84,6 +86,7 @@ public class Article
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Slug { get; set; } = "";
+    public string Language { get; set; } = "en";
     public string Title { get; set; } = "";
     public string Summary { get; set; } = "";
     public string Body { get; set; } = "";

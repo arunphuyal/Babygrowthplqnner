@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, auth, User } from '../api'
+import { APP_NAME } from '../brand'
 
 export default function Login() {
   const nav = useNavigate()
@@ -22,7 +23,7 @@ export default function Login() {
   return (
     <div className="login">
       <form className="panel" onSubmit={submit}>
-        <h2>PottyTrain Admin</h2>
+        <h2>{APP_NAME} Admin</h2>
         <label>Email<input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus /></label>
         <label>Password<input type="password" value={password} onChange={e => setPassword(e.target.value)} required /></label>
         {error && <p className="err">{error}</p>}

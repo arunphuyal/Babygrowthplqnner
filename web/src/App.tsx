@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
-import { useConsent } from './consent'
+import { useConsent, reopenConsent } from './consent'
+import { hasOptionalTracking } from './site'
 import { applyConsent, trackPageView } from './trackers'
 import { useSeo } from './seo'
 import { SITE } from './site'
@@ -10,7 +11,7 @@ import Privacy from './pages/Privacy'
 import { GuideList, GuidePage } from './pages/Guides'
 
 function NotFound() {
-  useSeo({ title: 'Page not found – PottyTrain', path: '/404', noindex: true })
+  useSeo({ title: `Page not found – ${SITE.name}`, path: '/404', noindex: true })
   return <div className="page"><h1>Page not found</h1><Link to="/">Go home</Link></div>
 }
 
@@ -40,7 +41,7 @@ export default function App() {
         </Routes>
       </main>
       <footer>
-        © {new Date().getFullYear()} {SITE.name} · <Link to="/privacy">Privacy</Link> · <a href={`mailto:${SITE.contactEmail}`}>Contact</a>
+        © {new Date().getFullYear()} {SITE.name} · <Link to="/privacy">Privacy</Link> · {hasOptionalTracking && <><button className="link" onClick={reopenConsent}>Ad &amp; cookie choices</button> · </>} <a href={`mailto:${SITE.contactEmail}`}>Contact</a>
         <br />{SITE.name} is a tracking tool, not medical advice. Talk to your paediatrician about concerns.
       </footer>
       <ConsentBanner />

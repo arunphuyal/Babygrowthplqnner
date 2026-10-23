@@ -1,0 +1,45 @@
+# Apache rules for cPanel / shared hosting. Upload the contents of web/dist (including this file) to public_html.
+Options -Indexes
+# Serve /guides/some-guide from guides/some-guide/index.html without a redirect to a trailing slash,
+# so the URL matches the canonical URL written by the prerender step.
+DirectorySlash Off
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Force HTTPS (comment out on a plain-HTTP test host)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # 1. A real file: serve it.
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+
+  # 2. A prerendered folder (/guides/x -> /guides/x/index.html, and the home page).
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}/index.html -f
+  RewriteRule ^(.*?)/?$ $1/index.html [L]
+
+  # 3. Everything else is a client-side route handled by the React app.
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+  # Hashed build assets never change; the HTML pages should always be revalidated.
+  <FilesMatch "\.(js|css|woff2?|png|jpg|jpeg|svg|webp|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(html|xml|txt)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json application/xml text/plain image/svg+xml
+</IfModule>

@@ -22,4 +22,11 @@ export function setConsent(analytics: boolean, advertising: boolean) {
   listeners.forEach(l => l())
 }
 
+/** Shows the banner again so a visitor can change or withdraw their choice at any time (a legal requirement in the EU/UK). */
+export function reopenConsent() {
+  current = NONE
+  try { localStorage.removeItem(KEY) } catch { /* ignore */ }
+  listeners.forEach(l => l())
+}
+
 export const useConsent = (): Consent => useSyncExternalStore(cb => { listeners.add(cb); return () => listeners.delete(cb) }, () => current)

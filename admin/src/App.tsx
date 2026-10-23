@@ -1,5 +1,6 @@
 import { Navigate, NavLink, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { auth } from './api'
+import { APP_NAME } from './brand'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
@@ -14,7 +15,7 @@ function Layout() {
   return (
     <div className="shell">
       <aside>
-        <h1>🌱 PottyTrain<small>Admin</small></h1>
+        <h1>🌱 {APP_NAME}<small>Admin</small></h1>
         <NavLink to="/" end>Dashboard</NavLink>
         <NavLink to="/users">Users</NavLink>
         <NavLink to="/articles">Content</NavLink>

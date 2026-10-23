@@ -28,7 +28,7 @@ Donors pay on Stripe's hosted page. The API stores only the amount and session i
 The site is a single-page app: configure your host to serve `<path>/index.html` if it exists, otherwise the root `index.html` (nginx: `try_files $uri $uri/index.html /index.html;`; Netlify and Cloudflare Pages do this by default).
 
 ### Analytics and marketing pixels (website only)
-`VITE_GA_MEASUREMENT_ID` (Google Analytics 4) and `VITE_META_PIXEL_ID` (Meta Pixel) are optional. Nothing loads until the visitor opts in, in two separate categories: **analytics** (GA4) and **advertising & marketing** (AdSense, Meta Pixel). GA4 starts in denied Consent Mode with IP anonymisation; the Meta Pixel starts with consent revoked. Events: `page_view`, `waitlist_join`, `donate_start`, `donate_thanks`, `guide_view`, with no personal data in any parameter. Waitlist sign-ups also store `utm_source/medium/campaign` so you can see which campaign worked. These tags are deliberately **not** used in the tracking app, on shared report pages, or anywhere a child's data appears. Keep it that way when the mobile app is built, because health-related tracker leaks have led to regulatory action against family and health apps. Check your region's consent rules, as the banner here is not a certified consent platform.
+`VITE_GOOGLE_TAG_ID` (a Google tag: `G-...`, `GT-...` or `AW-...`) and `VITE_META_PIXEL_ID` (Meta Pixel) are optional. Nothing loads until the visitor opts in, in two separate categories: **analytics** (Google tag measurement) and **ads** (AdSense, ad signals of the Google tag, Meta Pixel). The Google tag is not fetched until the visitor allows at least one category, then starts in Consent Mode v2 with every signal denied and grants only what was chosen; the Meta Pixel starts with consent revoked. The banner asks parents, optionally, to allow ads or make a contribution to keep the app free; declining changes nothing. Events: `page_view`, `waitlist_join`, `donate_start`, `donate_thanks`, `guide_view`, with no personal data in any parameter. Waitlist sign-ups also store `utm_source/medium/campaign` so you can see which campaign worked. These tags are deliberately **not** used in the tracking app, on shared report pages, or anywhere a child's data appears. Keep it that way when the mobile app is built, because health-related tracker leaks have led to regulatory action against family and health apps. Check your region's consent rules, as the banner here is not a certified consent platform.
 
 ### SEO
 - Every page sets title, description, canonical URL, Open Graph/Twitter tags and JSON-LD (Organization, WebSite, FAQPage, Article, BreadcrumbList) at runtime.
@@ -40,6 +40,12 @@ The site is a single-page app: configure your host to serve `<path>/index.html` 
 - `GET /api/children/{id}/report?from=2026-10-01&to=2026-10-07&format=json|html|csv&includeLogs=true`: any caregiver. Dates are the child's local days (max 90 days). HTML is print-friendly ("Save as PDF" from the browser or the app); CSV lists every entry (spreadsheet-formula-safe).
 - Share links, owner only: `POST /api/children/{id}/report-links` (`from`, `to`, `includeLogs`, `expiresInDays` 1-30) returns a token and `/r/{token}`; `GET` lists active links; `DELETE .../report-links/{linkId}` revokes. The public page is unguessable, expiring, revocable, `noindex`, `no-store`, `no-referrer`, and has no scripts, ads or trackers.
 - Native PDF generation is not included; add a PDF library (check its licence terms) if you need server-side PDFs.
+
+## Hosting
+Self-hosted on cPanel. See **`docs/HOSTING.md`** (what runs where, step-by-step cPanel upload, API on a VPS, email, Stripe, go-live checklist) and `deploy/package.sh` (one command builds the upload zips).
+
+## Branding and language
+The product name is a setting, not code: `VITE_SITE_NAME` (website), `VITE_APP_NAME` (admin), `App__Name` (API emails and the Stripe product name). English (`en`) is the default; accounts and guides carry a language code (`/api/articles?lang=fr`), so translated guides can live beside English ones with the same slug.
 
 ## Run locally
 
