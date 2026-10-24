@@ -3,23 +3,9 @@ import { API, SITE } from '../site'
 import { useSeo, organizationLd, websiteLd, faqLd } from '../seo'
 import { track, campaignSuffix } from '../trackers'
 import Donate from '../components/Donate'
+import content from '../content.json'
 
-const features = [
-  { icon: '🚽', title: 'One-tap logging', text: 'Pee, poop, accidents, sits, drinks and food, logged in a second, even with one hand full.' },
-  { icon: '🔮', title: 'Smart predictions', text: 'We learn your child\'s rhythm, including how long after a drink they usually need to go, and nudge you before the next likely potty time.' },
-  { icon: '📈', title: 'Clear progress', text: 'Success rate, dry streaks, intake vs output and busiest hours, so you can see what is working.' },
-  { icon: '👨‍👩‍👧', title: 'Share with caregivers', text: 'Parents, grandparents and daycare stay in sync on the same log.' },
-  { icon: '🥦', title: 'Food, fluids and poo', text: 'Spot patterns between what your child eats and drinks and how easily they go.' },
-  { icon: '📚', title: 'Expert-style guides', text: 'Readiness checklists, first-week routines and what to do about accidents. Free to read.' },
-]
-
-const faqs = [
-  ['Is it really free?', 'Yes. Every feature is free for now. We cover the running costs with optional contributions and, if you allow them, ads on our website guides (never inside your child\'s log).'],
-  ['When should I start potty training?', 'Most children show signs of readiness between 18 and 36 months. Every child is different. Our readiness guide helps you decide.'],
-  ['Is my child\'s data private?', 'Yes. We only store what you log, never sell it, never show ads next to it, and you can delete everything at any time.'],
-  ['How do I sign in?', 'With your email address and a password. You can reset your password by email if you forget it.'],
-  ['When is the app launching?', 'Join the waitlist and we\'ll email you as soon as the iOS and Android apps are ready.'],
-]
+const { features, faqs, steps } = content as { features: { icon: string; title: string; text: string }[]; faqs: string[][]; steps: string[][] }
 
 export default function Home() {
   useSeo({ title: `${SITE.name} – Free potty training tracker for parents`, description: SITE.description, path: '/', jsonLd: [organizationLd(), websiteLd(), faqLd(faqs)] })
@@ -51,11 +37,7 @@ export default function Home() {
 
       <section className="section alt">
         <h2>How it works</h2>
-        <ol className="steps">
-          <li><b>1. Add your child</b><p>Set their age and the day you start.</p></li>
-          <li><b>2. Log in one tap</b><p>Record each potty visit, accident, drink and snack as it happens.</p></li>
-          <li><b>3. Follow the insights</b><p>Get predictions, streaks and a plan that adapts.</p></li>
-        </ol>
+        <ol className="steps">{steps.map(([t, d]) => <li key={t}><b>{t}</b><p>{d}</p></li>)}</ol>
       </section>
 
       <Donate />

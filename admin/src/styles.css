@@ -27,3 +27,5 @@ th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line)
 
 .seo { border:1px solid var(--line); border-radius:10px; padding:12px 14px; display:grid; gap:8px; background:#fafdfb; } .seo ul { list-style:none; padding:0; margin:0; display:grid; gap:4px; font-size:.88rem; }
 .serp { display:grid; gap:2px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; } .serp-url { color:#1e7a46; font-size:.78rem; } .serp-title { color:#1a0dab; font-size:1.05rem; } .serp-desc { color:#4d5156; font-size:.85rem; }
+
+.preview { border:1px solid var(--line); border-radius:10px; padding:10px 16px; background:#fff; max-height:360px; overflow:auto; } .preview h3 { margin:1em 0 .3em; } .preview a { color:var(--green-d); }

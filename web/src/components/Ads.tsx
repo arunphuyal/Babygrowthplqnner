@@ -10,7 +10,7 @@ function loadAdsScript() {
   if (scriptLoaded || !SITE.adsenseClient) return
   scriptLoaded = true
   window.adsbygoogle = window.adsbygoogle ?? []
-  window.adsbygoogle.requestNonPersonalizedAds = 1 // never personalised until a certified consent platform is added
+  window.adsbygoogle.requestNonPersonalizedAds = 1 // never personalized until a certified consent platform is added
   const s = document.createElement('script')
   s.async = true
   s.crossOrigin = 'anonymous'

@@ -22,7 +22,7 @@ Donors pay on Stripe's hosted page. The API stores only the amount and session i
 ### Google AdSense (website)
 1. Publish the site on your own domain and apply at adsense.google.com. AdSense wants real content and a privacy policy. The guides pages and `/privacy` are included; add more guides in the admin portal ("Content").
 2. After approval set `VITE_ADSENSE_CLIENT` (ca-pub-...) and `VITE_ADSENSE_SLOT` at build time (see `web/.env.example`) and put the line from AdSense into `web/public/ads.txt`.
-3. Ads only load after a visitor clicks "Allow ads", and are requested as non-personalised. **Before serving visitors in the EEA/UK you must use a Google-certified consent platform** (Google's free "Privacy & messaging" tool works); the built-in banner is not one.
+3. Ads only load after a visitor clicks "Allow ads", and are requested as non-personalized. **Before serving visitors in the EEA/UK you must use a Google-certified consent platform** (Google's free "Privacy & messaging" tool works); the built-in banner is not one.
 4. Keep `VITE_CONTACT_EMAIL` and the wording in `web/src/pages/Privacy.tsx` up to date and have the privacy policy reviewed for your jurisdiction.
 
 The site is a single-page app: configure your host to serve `<path>/index.html` if it exists, otherwise the root `index.html` (nginx: `try_files $uri $uri/index.html /index.html;`; Netlify and Cloudflare Pages do this by default).
@@ -30,7 +30,11 @@ The site is a single-page app: configure your host to serve `<path>/index.html` 
 ### Analytics and marketing pixels (website only)
 `VITE_GOOGLE_TAG_ID` (a Google tag: `G-...`, `GT-...` or `AW-...`) and `VITE_META_PIXEL_ID` (Meta Pixel) are optional. Nothing loads until the visitor opts in, in two separate categories: **analytics** (Google tag measurement) and **ads** (AdSense, ad signals of the Google tag, Meta Pixel). The Google tag is not fetched until the visitor allows at least one category, then starts in Consent Mode v2 with every signal denied and grants only what was chosen; the Meta Pixel starts with consent revoked. The banner asks parents, optionally, to allow ads or make a contribution to keep the app free; declining changes nothing. Events: `page_view`, `waitlist_join`, `donate_start`, `donate_thanks`, `guide_view`, with no personal data in any parameter. Waitlist sign-ups also store `utm_source/medium/campaign` so you can see which campaign worked. These tags are deliberately **not** used in the tracking app, on shared report pages, or anywhere a child's data appears. Keep it that way when the mobile app is built, because health-related tracker leaks have led to regulatory action against family and health apps. Check your region's consent rules, as the banner here is not a certified consent platform.
 
-### SEO
+### SEO and content
+See **`docs/CONTENT-SEO.md`** for the content and SEO playbook (style rules, publishing workflow, topic backlog, measuring, trust). Highlights:
+- 16 starter guides in neutral international English; a test enforces the on-page checklist, valid internal links and no orphan pages.
+- Guide text format (shared by website, prerender and admin preview, `web/shared/markup.mjs`): blank-line paragraphs, `## ` headings, `- ` lists and `[text](/guides/slug)` links (site-relative or https only).
+- Prerendered pages also get `feed.xml` (RSS); a nightly workflow (`.github/workflows/refresh-site.yml`) rebuilds them from the live API and can upload to cPanel over SSH when you add the optional secrets (`CPANEL_SSH_KEY`, `CPANEL_HOST`, `CPANEL_USER`, `CPANEL_KNOWN_HOSTS`, optional `CPANEL_PORT`, variable `CPANEL_PATH`). The SSH upload is written but untested against a real host.
 - Every page sets title, description, canonical URL, Open Graph/Twitter tags and JSON-LD (Organization, WebSite, FAQPage, Article, BreadcrumbList) at runtime.
 - `npm run build` in `web/` also runs `scripts/prerender.mjs`: it reads the published guides from `PRERENDER_API_URL`, writes real HTML for each guide (so crawlers do not depend on JavaScript), and generates `sitemap.xml` and `robots.txt`. Set `VITE_SITE_URL` to your domain first. Premium/locked guides are never written to public HTML. Rebuild (or run `npm run build` in CI on a schedule or on publish) after adding guides.
 - The admin article editor has focus keyword, SEO title/description fields, a search-result preview and an on-page checklist (title and description length, 300+ words, subheadings, keyword placement).
@@ -39,7 +43,7 @@ The site is a single-page app: configure your host to serve `<path>/index.html` 
 ### Reports
 - `GET /api/children/{id}/report?from=2026-10-01&to=2026-10-07&format=json|html|csv&includeLogs=true`: any caregiver. Dates are the child's local days (max 90 days). HTML is print-friendly ("Save as PDF" from the browser or the app); CSV lists every entry (spreadsheet-formula-safe).
 - Share links, owner only: `POST /api/children/{id}/report-links` (`from`, `to`, `includeLogs`, `expiresInDays` 1-30) returns a token and `/r/{token}`; `GET` lists active links; `DELETE .../report-links/{linkId}` revokes. The public page is unguessable, expiring, revocable, `noindex`, `no-store`, `no-referrer`, and has no scripts, ads or trackers.
-- Native PDF generation is not included; add a PDF library (check its licence terms) if you need server-side PDFs.
+- Native PDF generation is not included; add a PDF library (check its license terms) if you need server-side PDFs.
 
 ## Hosting
 Self-hosted: static site and admin on cPanel, API on an ASP.NET-capable host or a small VPS. See **`docs/HOSTING.md`** (what runs where, step-by-step cPanel upload, API on a VPS, email, Stripe, go-live checklist) and `deploy/package.sh` (one command builds the upload zips), `deploy/bootstrap-vps.sh` + `deploy/deploy-vps.sh` (VPS setup and deploys with automatic rollback) and `.github/workflows/ci.yml`.
@@ -81,7 +85,7 @@ Auth: `POST /api/auth/register`, `/login` return a short-lived (30 min) JWT plus
 |---|---|
 | `GET/POST /api/children`, `GET/PUT/DELETE /api/children/{id}` | Child profiles (Free plan: 1 child, else `402`) |
 | `GET/POST /api/children/{id}/logs`, `DELETE .../logs/{logId}` | Log `Pee, Poop, Accident, Sit, Fluid, Food, Reward, Note`. Common: `occurredAt`, `inPotty`, `notes`, and an optional client-generated `id` so an offline retry returns the existing entry (`200`) instead of creating a duplicate. Intake/output detail: `amount` (ml; Fluid/Pee), `size` (`Tiny/Small/Medium/Large`; Pee/Poop/Fluid/Food), `stoolType` (Bristol 1-7; Poop), `colour` (Pee/Poop), `category` and `tags` (Fluid/Food). Inconsistent combinations return `400`. |
-| `GET /api/children/{id}/insights?days=7` | (Free: max 7 days; Premium/Family: up to 90 days and food/fluid-to-stool correlations.) Days and hours use the child's `timeZoneId` (IANA). Success rate, dry streak, hourly histogram, daily series, **daily intake/output balance**, **drink-to-wee lag**, avg wee/stool intervals, non-diagnostic **notes** (no stool for 3+ days, hard stools, unusual colour, fewer wees than usual) |
+| `GET /api/children/{id}/insights?days=7` | (Free: max 7 days; Premium/Family: up to 90 days and food/fluid-to-stool correlations.) Days and hours use the child's `timeZoneId` (IANA). Success rate, dry streak, hourly histogram, daily series, **daily intake/output balance**, **drink-to-pee lag**, avg pee/stool intervals, non-diagnostic **notes** (no stool for 3+ days, hard stools, unusual colour, fewer pees than usual) |
 | `GET /api/children/{id}/prediction` | Next likely potty visit: best model plus alternatives, each with confidence and reason |
 | `POST /api/children/{id}/invites`, `POST /api/invites/accept`, `GET /api/children/{id}/caregivers`, `DELETE .../caregivers/{userId}` | Share a child with caregivers (owner needs the **Family** plan; invites are single-use, 7 days, view-only or can-edit). Logs record who logged them (`loggedBy`). |
 | `POST /api/billing/webhook/revenuecat` | RevenueCat subscription webhook that sets the user's plan and expiry |
@@ -90,7 +94,7 @@ Auth: `POST /api/auth/register`, `/login` return a short-lived (30 min) JWT plus
 | `/api/admin/*` (Admin role) | stats, users, articles CRUD, plans, waitlist |
 
 ## Prediction models
-Predictors implement `IPottyPredictor` (`Services/Prediction.cs`) and are registered in `Program.cs`; `PredictionService` returns the most confident one. Included: `median-gap` (baseline, free) and `fluid-aware` (Premium: uses the child's own drink-to-wee delay; needs 5+ samples and a recent drink with no wee since). Set `RequiresPremium => true` on a predictor to make it a paid feature; paid features follow the child's **owner**, so a Family plan benefits every caregiver. To add a model, implement the interface, return `null` when data is insufficient, and register it as a singleton.
+Predictors implement `IPottyPredictor` (`Services/Prediction.cs`) and are registered in `Program.cs`; `PredictionService` returns the most confident one. Included: `median-gap` (baseline, free) and `fluid-aware` (Premium: uses the child's own drink-to-pee delay; needs 5+ samples and a recent drink with no pee since). Set `RequiresPremium => true` on a predictor to make it a paid feature; paid features follow the child's **owner**, so a Family plan benefits every caregiver. To add a model, implement the interface, return `null` when data is insufficient, and register it as a singleton.
 
 ## Tests
 `cd backend && dotnet test` (unit tests for predictors/insights, plus API tests against a temporary SQLite file).

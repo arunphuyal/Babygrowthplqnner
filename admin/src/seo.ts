@@ -1,6 +1,8 @@
 export interface SeoInput { title: string; slug: string; summary: string; body: string; metaTitle?: string; metaDescription?: string; focusKeyword?: string }
 export interface SeoCheck { label: string; ok: boolean; hint: string }
 
+import { linkedGuideSlugs } from './markup.mjs'
+
 const words = (s: string) => (s.match(/\S+/g) ?? []).length
 
 /** On-page SEO checklist shown while editing a guide. These are rules of thumb, not a ranking guarantee. */
@@ -14,6 +16,7 @@ export function seoChecks(a: SeoInput): SeoCheck[] {
     { label: 'Description length 70-160 characters', ok: desc.length >= 70 && desc.length <= 160, hint: `Now ${desc.length}. Write a clear sentence that makes people want to click.` },
     { label: 'At least 300 words', ok: words(a.body) >= 300, hint: `Now ${words(a.body)}. Thin pages rarely rank and AdSense may reject them.` },
     { label: 'At least 2 subheadings (## Heading)', ok: (a.body.match(/^## /gm) ?? []).length >= 2, hint: 'Subheadings make the page easier to scan and to rank for related questions.' },
+    { label: 'Links to at least one other guide', ok: linkedGuideSlugs(a.body).filter(s => s !== a.slug).length >= 1, hint: 'Write [link text](/guides/other-slug). Internal links help readers and search engines find related pages.' },
     { label: 'Short, readable URL slug', ok: /^[a-z0-9]+(-[a-z0-9]+){0,5}$/.test(a.slug) && a.slug.length <= 60, hint: 'Lowercase words separated by hyphens, six words at most.' },
   ]
   if (kw) {

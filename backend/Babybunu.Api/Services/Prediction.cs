@@ -54,7 +54,7 @@ public static class LogRules
     public static bool IsQualifyingDrink(LogEntry l) => IntakeMl(l) >= MinQualifyingDrinkMl;
 
     /// <summary>
-    /// Minutes between a drink and the next wee. Each wee is paired only with the last qualifying drink before it
+    /// Minutes between a drink and the next pee. Each pee is paired only with the last qualifying drink before it
     /// (so back-to-back drinks are not double counted) and only if it follows within 4 hours.
     /// </summary>
     public static List<double> DrinkToUrineLagsMinutes(IEnumerable<LogEntry> logs)
@@ -96,7 +96,7 @@ public class MedianGapPredictor : IPottyPredictor
     }
 }
 
-/// <summary>Uses the child's own drink-to-wee delay: a recent qualifying drink with no wee since predicts when the next one is due.</summary>
+/// <summary>Uses the child's own drink-to-pee delay: a recent qualifying drink with no pee since predicts when the next one is due.</summary>
 public class FluidAwarePredictor : IPottyPredictor
 {
     public const int MinSamples = 5;
@@ -122,7 +122,7 @@ public class FluidAwarePredictor : IPottyPredictor
             due = ctx.Now.AddMinutes(5);
         }
         return new Prediction(due, Stats.Confidence(lags, 15), Name,
-            $"Last drink was {drink.OccurredAt:HH:mm} UTC; this child usually wees about {median:0} min after a drink ({lags.Count} samples).");
+            $"Last drink was {drink.OccurredAt:HH:mm} UTC; this child usually pees about {median:0} min after a drink ({lags.Count} samples).");
     }
 }
 

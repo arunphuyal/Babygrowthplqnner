@@ -45,7 +45,7 @@ public class FreeModeTests(TestFactory f) : IClassFixture<TestFactory>
     {
         var guides = await f.CreateClient().GetFromJsonAsync<JsonElement>("/api/articles");
         Assert.True(guides.GetArrayLength() >= 4);
-        var one = await f.CreateClient().GetFromJsonAsync<JsonElement>("/api/articles/signs-of-readiness");
+        var one = await f.CreateClient().GetFromJsonAsync<JsonElement>("/api/articles/potty-training-readiness");
         Assert.False(one.GetProperty("locked").GetBoolean());
         Assert.Contains("ready", one.GetProperty("body").GetString());
     }

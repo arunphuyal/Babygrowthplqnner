@@ -4,7 +4,7 @@ export const SITE = {
   name: (import.meta.env.VITE_SITE_NAME ?? 'Babybunu') as string,
   url: ((import.meta.env.VITE_SITE_URL ?? 'https://example.com') as string).replace(/\/$/, ''),
   contactEmail: import.meta.env.VITE_CONTACT_EMAIL ?? 'hello@example.com',
-  description: 'Free potty training tracker for parents: log wees, poos, accidents, drinks and food, spot your toddler\'s patterns and get a calm, clear plan.',
+  description: 'Free potty training tracker for parents: log pees, poops, accidents, drinks and food, spot your toddler\'s patterns and get a calm, clear plan.',
   // Google AdSense. Leave the client empty to show no ads at all.
   adsenseClient: (import.meta.env.VITE_ADSENSE_CLIENT ?? '') as string, // e.g. ca-pub-1234567890123456
   adsenseSlot: (import.meta.env.VITE_ADSENSE_SLOT ?? '') as string,     // an ad unit id from your AdSense account

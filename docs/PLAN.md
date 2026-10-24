@@ -18,7 +18,7 @@ Mostly iOS-first indie apps; I could not verify per-country availability from th
 **Takeaways:** the space is crowded with thin, iOS-only trackers; common paid hooks are predictions, AI coaching and caregiver sharing. Gaps to exploit: Android + web, multilingual/regional content (non-English markets), daycare/nanny sharing and reports, and method-aware plans (3-day, child-led, Oh-Crap-style) instead of just a log.
 
 ## Where we are (Oct 2026)
-**Built and tested (50 automated tests):** ASP.NET Core API (accounts with refresh tokens and password reset, children, logs of wees/poos/accidents/drinks/food with size, stool type, colour and tags, insights, intake-to-output lag, health notes, two prediction models behind an interface, correlations, caregiver sharing, time zones, rate limiting, EF migrations), admin portal (stats, users, content, plans, donations, waitlist), public website (landing, guides, privacy, donate, consent-gated AdSense slots), Stripe donations, a dormant RevenueCat billing path.
+**Built and tested (50 automated tests):** ASP.NET Core API (accounts with refresh tokens and password reset, children, logs of pees/poops/accidents/drinks/food with size, stool type, colour and tags, insights, intake-to-output lag, health notes, two prediction models behind an interface, correlations, caregiver sharing, time zones, rate limiting, EF migrations), admin portal (stats, users, content, plans, donations, waitlist), public website (landing, guides, privacy, donate, consent-gated AdSense slots), Stripe donations, a dormant RevenueCat billing path.
 **Business model now:** everything free (`Features:AllFree`), funded by donations and website ads.
 **Not started:** deployment, mobile app, email verification, account export/delete, push reminders, analytics/crash reporting, legal review, store listings.
 
@@ -28,7 +28,7 @@ Estimates assume one developer working with an AI pair and are rough; each phase
 ### Phase 0 – Company, brand and accounts (start now, runs in parallel)
 Several launch steps depend on a legal entity, so begin early (registration time varies by country).
 - **Brand (decided): Babybunu.** Still to do: check the domain (and common variants), trademark databases in your target markets, the App Store and Google Play name, and social handles before spending on branding; I cannot verify availability from here. The name is a setting (`VITE_SITE_NAME`, `VITE_APP_NAME`, `App:Name`) and the code, projects and services have been renamed to Babybunu. Potty training is the first module; plan the wider product (growth, sleep, feeding, milestones) as separate "programs" attached to a child when the second one starts.
-- **Company:** register it, open a business bank account, get tax IDs (and VAT/GST if applicable), and get a D-U-N-S number (Apple and Google need one to publish under an organisation account).
+- **Company:** register it, open a business bank account, get tax IDs (and VAT/GST if applicable), and get a D-U-N-S number (Apple and Google need one to publish under an organization account).
 - **Accounts in the company's name:** domain, hosting, Stripe, Google AdSense and Google Search Console/Tag, Apple Developer ($99/yr) and Google Play ($25 once) developer accounts, an email provider, an error-tracking account.
 - **Legal:** privacy policy and terms with the company's name and address (replace the draft text in `web/src/pages/Privacy.tsx`), a cookie/consent tool, a data-processing record, and an accountant's view on how contributions and ad income are taxed. Because the company is not a charity, the app says "support" and "contribution", not "donation", and Stripe's button says "Pay".
 - **Exit criteria:** entity registered, brand and domain locked, store and Stripe accounts opened.
@@ -44,13 +44,13 @@ Goal: a public site you can safely point real parents at.
 - **Observability:** error tracking (Sentry or Application Insights), structured logs, uptime check on `/health`, basic dashboards.
 - **Money and legal:** go live with Stripe (test mode first, then live keys and the webhook), apply for AdSense once there are 10+ guides, have the privacy policy and a short terms page reviewed, add a certified consent tool for EEA/UK, trademark and domain check on the name.
 - **SEO and tracking:** deploy the prerendered site with the directory-index hosting rule, submit the sitemap, set `VITE_SITE_URL`; decide whether to enable GA4 and the Meta Pixel (both consent-gated; keep them off the app and shared reports); add a certified consent platform for the EEA/UK.
-- **Content:** write at least 10 solid guides (readiness, methods, night training, regression, constipation basics, daycare, travel, siblings, special needs resources, FAQs), reviewed by someone qualified (health visitor or paediatric nurse) if you can.
+- **Content:** write at least 10 solid guides (readiness, methods, night training, regression, constipation basics, daycare, travel, siblings, special needs resources, FAQs), reviewed by someone qualified (health visitor or pediatric nurse) if you can.
 - **Exit criteria:** all CI green, a staging environment, restore drill done, Stripe test donation recorded in admin, privacy page live, Lighthouse score above 90 on the landing page.
 
 ### Phase 2 – Mobile app MVP (about 6 weeks)
 Goal: parents can actually track. This is the product; the site and API exist to support it.
 - **Stack (decided):** Expo/React Native with TypeScript (reuses your React skills and the API client). English is the default language and the content model already carries a language per account and per guide; use `i18next` with `expo-localization` from day one so strings are never hard-coded. Generate the TypeScript client from the API's OpenAPI document so types never drift.
-- **Core screens:** sign-up/login (email), add child, today timeline, big one-tap buttons for wee/poo/accident/sit/drink/food with optional details (size, Bristol type, colour, tags), edit/delete, insights (success rate, dry streak, hourly chart, intake vs output), next-potty prediction, guides (offline cache), settings (time zone, export, delete account), caregiver invite/accept.
+- **Core screens:** sign-up/login (email), add child, today timeline, big one-tap buttons for pee/poop/accident/sit/drink/food with optional details (size, Bristol type, colour, tags), edit/delete, insights (success rate, dry streak, hourly chart, intake vs output), next-potty prediction, guides (offline cache), settings (time zone, export, delete account), caregiver invite/accept.
 - **Offline-first:** local queue with client-generated IDs so retries never create duplicate logs. Backend: ~~idempotent create with a client-supplied id~~ (done). Still needed for full sync: edits and deletes while offline (an `updatedAt` and deletion markers) and a `since` cursor for efficient pulls.
 - **Push reminders:** device-token registration endpoint, a background service that schedules "try the potty now" notifications from predictions with quiet hours and a per-child on/off, via Expo push / FCM / APNs.
 - **Quality:** crash reporting, accessibility (large tap targets, screen reader labels), dark mode, English first with strings ready for translation.
@@ -78,6 +78,7 @@ Goal: parents can actually track. This is the product; the site and API exist to
 Order by what beta data shows parents want; likely candidates:
 - **Phase-aware journey:** readiness, intensive days, consolidation, night training, outings, regression, with a daily checklist per phase and gentle content.
 - **Rewards:** sticker charts, milestones, certificates, child-facing screens.
+- **Support prompts, decided: ask on both the website and the app.** Website: done (optional ad consent and contribution, never blocking). App: a gentle, dismissible, optional prompt (for example after a first dry day or a graduation milestone, never during logging or more than occasionally). Because Apple and Google generally require their own billing for tips and digital purchases, the in-app option should be a store-billing consumable "tip" (the stores take a commission) or a link to the website only where the current store policy for your regions allows it; settle this with the current App Store and Google Play rules before building. Ads inside the app remain out of scope.
 - **Reports (first version built):** JSON/HTML/CSV reports and expiring share links exist. Next: in-app report screen and share sheet, server-side PDF if needed, weekly email summary (opt-in), and a clinician-friendly layout reviewed with a health professional.
 - **Smarter predictions:** store every prediction and its error (`PredictionRecord`), compare models on mean absolute error and the share within 15 minutes, add a time-of-day model and an exponentially weighted gap model, then consider an offline-trained ML model served through the same interface. Keep a plain-language "why" on every prediction.
 - **Reading the data better:** nap and meal context tags, constipation trend charts, week-over-week summaries.
@@ -87,7 +88,7 @@ Order by what beta data shows parents want; likely candidates:
 ### Phase 6 – Sustainability and monetisation review (month 6 onward)
 - Track monthly: infrastructure cost, donation income, ad income, active users. Compare income to costs.
 - **If donations plus ads cover costs:** stay free and put effort into growth and content.
-- **If not:** switch `Features:AllFree` to `false` for new features only (keep core logging free), or add a low-priced optional Premium (predictions, long history, sharing, reports) through RevenueCat; keep donations. Other options: daycare/nursery licences, one-off method packs, labelled affiliate shelves, sponsorship that is privacy-safe.
+- **If not:** switch `Features:AllFree` to `false` for new features only (keep core logging free), or add a low-priced optional Premium (predictions, long history, sharing, reports) through RevenueCat; keep donations. Other options: daycare/nursery license, one-off method packs, labelled affiliate shelves, sponsorship that is privacy-safe.
 - Do not add ad SDKs to the app. If you ever do, get legal advice first.
 
 ### Continuous work (every phase)
@@ -100,9 +101,9 @@ Order by what beta data shows parents want; likely candidates:
 | Decision | Options | My recommendation |
 |---|---|---|
 | Hosting | **Decided:** self-hosted, static sites on cPanel. **Still open:** where the API runs (Linux VPS, Windows/IIS, or managed) | A small Linux VPS for the API; see `docs/HOSTING.md` |
-| Mobile framework | **Decided:** React Native (Expo) | - |
+| Mobile framework | **Decided:** React Native (Expo), iOS and Android together | Needs both store accounts (Apple $99/yr, Google $25 once) |
 | Legal entity | **Decided:** register a company | Phase 0; open the accounts in its name |
-| Languages and markets | **Decided:** English by default | Add other languages from beta and SEO data |
+| Languages and markets | **Decided:** international English by default (US spelling, USD/EUR) | Add other languages from beta and SEO data |
 | Product name and domain | **Decided:** a generic name, not potty-specific | Shortlist, then check domain, trademarks, store names |
 | Analytics | None, self-hosted, or privacy-friendly SaaS | Privacy-friendly, first-party, opt-out |
 | Clinical review of content | Self-written, or reviewed by a health professional | Reviewed if budget allows; otherwise keep content general and cautious |
@@ -132,15 +133,15 @@ The app is currently free, funded by Stripe donations and ads on the website onl
 - **Subscriptions (core):** Free (1 child, 7-day history) / Premium (predictions, full history, rewards, guides) / Family (unlimited children, caregiver sharing, daycare export). Prices seeded: $4.99/mo, $39.99/yr, $7.99/mo.
 - **One-off purchases:** method packs (3-day plan, night-training, regression rescue), printable reward charts and certificates, themed sticker packs.
 - **Affiliate / marketplace:** potties, training pants, books, reward toys – contextual in-app shelf, clearly labelled.
-- **B2B:** daycare/nursery licence with a multi-child dashboard and parent reports; paediatrician/health-visitor referral programme.
+- **B2B:** daycare/nursery license with a multi-child dashboard and parent reports; doctor/health-visitor referral program.
 - **Sponsorship:** vetted brand content (diaper/pull-up brands) – only if privacy-safe and clearly marked; avoid ad SDKs in a children's context.
 - **Premium services:** 1:1 potty coach chat or live Q&A add-on.
 
 ## Additional feature ideas
 **Tracking:** fluid & meal timing, stool type (Bristol scale) and colour, night dryness, wetness before/after naps, regression flags, photos of reward charts, mood/notes, sickness/travel markers.
-**Smart:** next-visit prediction (basic version included), AI coach for troubleshooting, personalised daily plan, auto-detected readiness score, constipation/health alerts (with "see your doctor" disclaimers).
+**Smart:** next-visit prediction (basic version included), AI coach for troubleshooting, personalized daily plan, auto-detected readiness score, constipation/health alerts (with "see your doctor" disclaimers).
 **Engagement:** reward charts & stickers, milestones and certificates, kid-facing mini-games, streaks for parents, a "next potty" widget/lock-screen timer, Apple Watch/Wear OS quick log, voice logging ("log a pee").
-**Family:** multi-caregiver live sync, daycare/grandparent invite links, shareable PDF report for daycare or paediatrician.
+**Family:** multi-caregiver live sync, daycare/grandparent invite links, shareable PDF report for daycare or doctor.
 **Content:** readiness quiz, method library, video lessons, community Q&A, multilingual guides.
 **Platform:** data export & delete (GDPR/COPPA-friendly – data is about a child but owned by the parent), offline-first, dark mode, home-screen widgets.
 

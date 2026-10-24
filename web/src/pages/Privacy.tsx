@@ -14,12 +14,12 @@ export default function Privacy() {
       <h2>What we collect</h2>
       <ul>
         <li><b>Account:</b> your email, display name and a hashed password.</li>
-        <li><b>Child tracking data you enter:</b> a name or nickname, birth date, and logs such as wees, poos, accidents, drinks and food. This is your data; we use it only to run the app, show your insights and let you share with caregivers you invite.</li>
+        <li><b>Child tracking data you enter:</b> a name or nickname, birth date, and logs such as pees, poops, accidents, drinks and food. This is your data; we use it only to run the app, show your insights and let you share with caregivers you invite.</li>
         <li><b>Website:</b> if you join the waitlist we store your email. Our servers keep standard technical logs.</li>
         <li><b>Contributions:</b> optional one-off payments are handled by Stripe. We receive only the amount and a transaction reference, never your card details.</li>
       </ul>
       <h2>Advertising, analytics and cookies</h2>
-      <p>The public website (for example the guides) may use <b>analytics</b> (the Google tag) and <b>advertising</b> (Google AdSense and, if enabled, marketing tags such as the Meta Pixel). None of them load until you opt in, and you can choose each category separately. Allowing ads is optional and is one way to support us; a contribution is another. Ads are requested as non-personalised.</p>
+      <p>The public website (for example the guides) may use <b>analytics</b> (the Google tag) and <b>advertising</b> (Google AdSense and, if enabled, marketing tags such as the Meta Pixel). None of them load until you opt in, and you can choose each category separately. Allowing ads is optional and is one way to support us; a contribution is another. Ads are requested as non-personalized.</p>
       <p><b>None of these tools are used inside the child tracking area or on shared report pages, and we never share your child's data, your logs or your account details with advertisers or analytics providers.</b> Website events contain only things like which page was viewed or that a waitlist form was submitted, never names, emails or health data.</p>
       <p>Your choices: analytics <b>{consent.analytics ? 'allowed' : 'off'}</b>, advertising &amp; marketing <b>{consent.advertising ? 'allowed' : 'off'}</b>.{' '}
         <button className="link" onClick={() => setConsent(false, false)}>Turn both off</button> · <button className="link" onClick={() => setConsent(true, true)}>Allow both</button></p>

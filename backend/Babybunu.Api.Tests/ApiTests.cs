@@ -39,11 +39,11 @@ public class ApiTests : IClassFixture<TestFactory>
         var (c, id) = await Setup();
         async Task Post(object body) => Assert.Equal(HttpStatusCode.Created, (await c.PostAsJsonAsync($"/api/children/{id}/logs", body)).StatusCode);
         await Post(new { type = "Fluid", amount = 200, category = "water" });
-        await Post(new { type = "Food", size = "Medium", category = "snack", tags = new[] { "Fibre", "fibre", "dairy" } });
+        await Post(new { type = "Food", size = "Medium", category = "snack", tags = new[] { "Fiber", "fiber", "dairy" } });
         await Post(new { type = "Poop", inPotty = true, stoolType = 4, size = "Small", colour = "Normal" });
 
         var logs = await c.GetFromJsonAsync<JsonElement>($"/api/children/{id}/logs?type=Food");
-        Assert.Equal("fibre,dairy", string.Join(',', logs[0].GetProperty("tags").EnumerateArray().Select(t => t.GetString())));
+        Assert.Equal("fiber,dairy", string.Join(',', logs[0].GetProperty("tags").EnumerateArray().Select(t => t.GetString())));
 
         var insights = await c.GetFromJsonAsync<JsonElement>($"/api/children/{id}/insights");
         Assert.Equal(200, insights.GetProperty("balance")[0].GetProperty("intakeMl").GetInt32());

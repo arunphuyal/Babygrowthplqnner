@@ -93,10 +93,10 @@ public static class ReportRenderer
         Tile("Accidents", i.TotalAccidents.ToString());
         Tile("Success rate", $"{i.SuccessRatePercent:0.#}%");
         Tile("Avg minutes between successes", i.AvgMinutesBetweenSuccesses > 0 ? i.AvgMinutesBetweenSuccesses.ToString("0") : "n/a");
-        Tile("Median drink-to-wee (min)", i.IntakeOutput.MedianDrinkToUrineMinutes?.ToString("0") ?? "n/a");
+        Tile("Median drink-to-pee (min)", i.IntakeOutput.MedianDrinkToUrineMinutes?.ToString("0") ?? "n/a");
         sb.Append("</div>");
 
-        sb.Append("<h2>Day by day</h2><table><tr><th>Date</th><th>Successes</th><th>Accidents</th><th>Drinks (ml)</th><th>Wees</th><th>Poos</th></tr>");
+        sb.Append("<h2>Day by day</h2><table><tr><th>Date</th><th>Successes</th><th>Accidents</th><th>Drinks (ml)</th><th>Pees</th><th>Poops</th></tr>");
         var acc = i.Daily.ToDictionary(d => d.Date);
         foreach (var b in i.Balance)
         {

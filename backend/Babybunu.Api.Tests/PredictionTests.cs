@@ -159,12 +159,12 @@ public class InsightsTests
     }
 
     [Fact]
-    public void Flags_fewer_wees_than_usual()
+    public void Flags_fewer_pees_than_usual()
     {
         var logs = new List<LogEntry>();
         for (var d = 2; d <= 5; d++) for (var i = 0; i < 6; i++) logs.Add(Log(LogType.Pee, Now.AddDays(-d).AddHours(i)));
         logs.Add(Log(LogType.Pee, Now.AddHours(-2)));
-        Assert.Contains(InsightsCalculator.Compute(logs, 7, Now).Notes, n => n.Code == "fewer-wees");
+        Assert.Contains(InsightsCalculator.Compute(logs, 7, Now).Notes, n => n.Code == "fewer-pees");
     }
 
     [Fact]

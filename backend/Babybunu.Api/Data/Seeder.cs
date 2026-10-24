@@ -30,9 +30,14 @@ public static class Seeder
                 new PlanOffer { Plan = Plan.Family, Name = "Family", MonthlyPrice = 7.99m, YearlyPrice = 59.99m, Features = "Everything in Premium\nUnlimited children\nShare with caregivers\nDaycare report export" });
         }
 
-        if (!await db.Articles.AnyAsync())
+        // "OnFirstRun" (default) seeds the starter guides only into an empty database. "AddMissing" also adds any starter guide
+        // whose language and slug do not exist yet, which is useful after an upgrade; unpublish guides in the admin portal instead of deleting them.
+        var mode = cfg["Seed:StarterGuides"] ?? "OnFirstRun";
+        var anyArticles = await db.Articles.AnyAsync();
+        if (!anyArticles || mode.Equals("AddMissing", StringComparison.OrdinalIgnoreCase))
         {
-            db.Articles.AddRange(Guides.All);
+            var existing = (await db.Articles.Select(a => a.Language + "/" + a.Slug).ToListAsync()).ToHashSet();
+            db.Articles.AddRange(Guides.All.Where(g => !existing.Contains(g.Language + "/" + g.Slug)));
         }
         await db.SaveChangesAsync();
     }

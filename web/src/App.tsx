@@ -8,6 +8,7 @@ import { SITE } from './site'
 import { ConsentBanner } from './components/Ads'
 import Home from './pages/Home'
 import Privacy from './pages/Privacy'
+import About from './pages/About'
 import { GuideList, GuidePage } from './pages/Guides'
 import { VerifyEmail, ResetPassword } from './pages/AccountLinks'
 
@@ -38,14 +39,15 @@ export default function App() {
           <Route path="/guides" element={<GuideList />} />
           <Route path="/guides/:slug" element={<GuidePage />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/about" element={<About />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <footer>
-        © {new Date().getFullYear()} {SITE.name} · <Link to="/privacy">Privacy</Link> · {hasOptionalTracking && <><button className="link" onClick={reopenConsent}>Ad &amp; cookie choices</button> · </>} <a href={`mailto:${SITE.contactEmail}`}>Contact</a>
-        <br />{SITE.name} is a tracking tool, not medical advice. Talk to your paediatrician about concerns.
+        © {new Date().getFullYear()} {SITE.name} · <Link to="/about">About</Link> · <Link to="/privacy">Privacy</Link> · {hasOptionalTracking && <><button className="link" onClick={reopenConsent}>Ad &amp; cookie choices</button> · </>} <a href={`mailto:${SITE.contactEmail}`}>Contact</a>
+        <br />{SITE.name} is a tracking tool, not medical advice. Talk to your doctor about concerns.
       </footer>
       <ConsentBanner />
     </>

@@ -53,6 +53,13 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
         working-directory: web
+      - name: Guide text parser tests
+        run: npm test
+        working-directory: web
+      - name: Admin keeps an identical copy of the shared parser
+        run: |
+          diff web/shared/markup.mjs admin/src/markup.mjs
+          diff web/shared/markup.d.mts admin/src/markup.d.mts
       - run: npm run build   # type-checks, builds, and prerenders the static pages (guides need the API, skipped here)
         working-directory: web
         env:

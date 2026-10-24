@@ -1,9 +1,27 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { api, Article } from '../api'
 import { seoChecks } from '../seo'
+import { parseBody, readMinutes, type Inline } from '../markup.mjs'
 
 interface Draft { language?: string; slug: string; title: string; summary: string; body: string; isPremium: boolean; isPublished: boolean; metaTitle?: string; metaDescription?: string; focusKeyword?: string }
 const blank: Draft = { language: 'en', slug: '', title: '', summary: '', body: '', isPremium: false, isPublished: false, metaTitle: '', metaDescription: '', focusKeyword: '' }
+
+function Inlines({ parts }: { parts: Inline[] }) {
+  return <>{parts.map((p, i) => p.t === 'text' ? <span key={i}>{p.v}</span> : <a key={i} href="#preview" onClick={e => e.preventDefault()} title={p.href}>{p.v}</a>)}</>
+}
+
+/** Shows the body exactly as the website will render it (same parser), so formatting mistakes are visible before publishing. */
+function Preview({ body }: { body: string }) {
+  const blocks = parseBody(body)
+  if (blocks.length === 0) return <p className="muted">Nothing to preview yet.</p>
+  return (
+    <div className="preview">
+      <small className="muted">{readMinutes(body)} min read</small>
+      {blocks.map((b, i) => b.type === 'h2' ? <h3 key={i}>{b.text}</h3> : b.type === 'p' ? <p key={i}><Inlines parts={b.inline} /></p>
+        : <ul key={i}>{b.items.map((it, j) => <li key={j}><Inlines parts={it} /></li>)}</ul>)}
+    </div>
+  )
+}
 
 function SeoPanel({ a }: { a: Draft }) {
   const checks = seoChecks(a)
@@ -46,10 +64,11 @@ export default function Articles() {
       <label>Title<input required value={editing.title} onChange={e => setEditing({ ...editing, title: e.target.value })} /></label>
       <label>Slug<input required pattern="[a-z0-9-]+" value={editing.slug} onChange={e => setEditing({ ...editing, slug: e.target.value })} /></label>
       <label>Summary<input value={editing.summary} onChange={e => setEditing({ ...editing, summary: e.target.value })} /></label>
-      <label>Body<textarea rows={10} value={editing.body} onChange={e => setEditing({ ...editing, body: e.target.value })} /></label>
+      <label>Body (blank line = new paragraph, "## " = heading, "- " = bullet, [text](/guides/slug) = link)<textarea rows={14} value={editing.body} onChange={e => setEditing({ ...editing, body: e.target.value })} /></label>
       <label>Focus keyword<input placeholder="e.g. potty training regression" value={editing.focusKeyword ?? ''} onChange={e => setEditing({ ...editing, focusKeyword: e.target.value })} /></label>
       <label>SEO title (optional, defaults to the title)<input maxLength={120} value={editing.metaTitle ?? ''} onChange={e => setEditing({ ...editing, metaTitle: e.target.value })} /></label>
       <label>SEO description (optional, defaults to the summary)<textarea rows={2} maxLength={320} value={editing.metaDescription ?? ''} onChange={e => setEditing({ ...editing, metaDescription: e.target.value })} /></label>
+      <details><summary>Preview body</summary><Preview body={editing.body} /></details>
       <SeoPanel a={editing} />
       <label className="check"><input type="checkbox" checked={editing.isPremium} onChange={e => setEditing({ ...editing, isPremium: e.target.checked })} /> Premium only</label>
       <label className="check"><input type="checkbox" checked={editing.isPublished} onChange={e => setEditing({ ...editing, isPublished: e.target.checked })} /> Published</label>

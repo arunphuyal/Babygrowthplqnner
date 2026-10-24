@@ -54,3 +54,6 @@ a.feature { display:block; color:inherit; } a.feature:hover { border-color:var(-
 .consent .choices { display:grid; gap:6px; width:100%; font-size:.85rem; } .consent .choices label { display:flex; gap:8px; align-items:center; }
 
 .reset { display:grid; gap:14px; max-width:380px; } .reset label { display:grid; gap:4px; font-weight:600; font-size:.9rem; } .reset input { padding:11px 14px; border-radius:10px; border:1px solid var(--line); font-size:1rem; }
+.callout { background:var(--alt); border-radius:14px; padding:14px 18px; margin:28px 0; } .callout a { color:var(--green-d); font-weight:600; }
+.related ul { list-style:none; padding:0; display:grid; gap:12px; } .related a { font-weight:600; color:var(--green-d); }
+.prose a { color:var(--green-d); }
